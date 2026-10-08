@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Inicio</title>
+    
+    <!-- Tipografía Inter y biblioteca de íconos FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- ÚNICO ENLACE AL CSS -->
+    <link rel="stylesheet" href="../css/inicio.css">
+</head>
+<body>
+
+    <div class="app-layout">
+
+        <!-- ================= BARRA LATERAL ================= -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <div class="logo-badge">36</div>
+                    <div class="brand-titles">
+                        <h1>Biblioteca Escolar</h1>
+                        <p>E.T. N° 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <span class="nav-section-title">MENÚ PRINCIPAL</span>
+                    <ul>
+                        <li class="nav-item active">
+                            <a href="inicio.html">
+                                <i class="fa-solid fa-house nav-icon"></i>
+                                <span>Inicio</span>
+                            </a>
+                        </li>
+                        <!-- ENLACE CONECTADO A PRÉSTAMOS -->
+                        <li class="nav-item">
+                            <a href="prestamo.html">
+                                <i class="fa-regular fa-square-check nav-icon"></i>
+                                <span>Préstamos</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#">
+                                <i class="fa-regular fa-bookmark nav-icon"></i>
+                                <span>Catálogo e inventario</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="menuUsers">
+                            <a href="#">
+                                <i class="fa-regular fa-user nav-icon"></i>
+                                <span>Usuarios</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <a href="#" id="btnLogout" class="logout-button">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= CONTENIDO PRINCIPAL ================= -->
+        <main class="main-content">
+
+            <header class="top-bar">
+                <div class="breadcrumb">
+                    <span class="system-title">SISTEMA DE GESTIÓN</span>
+                    <h2 class="page-title">Inicio</h2>
+                </div>
+
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">--</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Cargando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                </div>
+            </header>
+
+            <section class="welcome-section">
+                <div class="welcome-text">
+                    <span class="date-badge" id="currentDate">FECHA ACTUAL</span>
+                    <h1 class="welcome-title">Bienvenido/a, <span id="welcomeName">Usuario</span></h1>
+                    <p class="welcome-subtitle" id="welcomeSubtitle">Resumen de la actividad general de la biblioteca.</p>
+                </div>
+                
+                <button class="btn-primary oculto" id="btnRegisterLoan">
+                    <i class="fa-solid fa-plus"></i> Registrar préstamo
+                </button>
+            </section>
+
+            <section class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon icon-blue">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <span class="kpi-label">Préstamos activos</span>
+                        <div class="kpi-value" id="countActive">0</div>
+                        <span class="kpi-subtext">Sin movimientos</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon icon-yellow">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <span class="kpi-label">Vencen hoy</span>
+                        <div class="kpi-value" id="countDueToday">0</div>
+                        <span class="kpi-subtext">Al día</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon icon-red">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <span class="kpi-label">Préstamos vencidos</span>
+                        <div class="kpi-value" id="countOverdue">0</div>
+                        <span class="kpi-subtext">Sin morosos</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon icon-green">
+                        <i class="fa-regular fa-bookmark"></i>
+                    </div>
+                    <div class="kpi-details">
+                        <span class="kpi-label">Ejemplares en catálogo</span>
+                        <div class="kpi-value">0</div>
+                        <span class="kpi-subtext">Inventario inicial</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-columns">
+                <div class="panel-card left-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Préstamos recientes</h3>
+                            <p>Últimos movimientos del sistema</p>
+                        </div>
+                        <a href="prestamos.html" class="panel-link">Ver todos &rarr;</a>
+                    </div>
+
+                    <div class="recent-list" id="recentList">
+                        <div class="estado-vacio">
+                            <i class="fa-regular fa-folder-open"></i>
+                            No hay préstamos registrados actualmente en el sistema.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card right-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Actividad de hoy</h3>
+                            <p>Movimientos en tiempo real</p>
+                        </div>
+                    </div>
+
+                    <div class="activity-summary">
+                        <div class="activity-big-number">
+                            <strong id="totalMovements">0</strong> <span>movimientos</span>
+                        </div>
+
+                        <div class="progress-group">
+                            <div class="progress-item">
+                                <div class="progress-labels">
+                                    <span><span class="dot dot-blue"></span> Préstamos</span>
+                                    <strong id="loansTodayCount">0</strong>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-blue" id="loansProgressBar"></div>
+                                </div>
+                            </div>
+
+                            <div class="progress-item">
+                                <div class="progress-labels">
+                                    <span><span class="dot dot-green"></span> Devoluciones</span>
+                                    <strong>0</strong>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill fill-green" id="returnsProgressBar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-secondary">Consultar movimientos</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL DE PRÉSTAMO -->
+    <div id="loanModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Registrar Nuevo Préstamo</h2>
+                <button id="closeModalBtn" class="modal-close">&times;</button>
+            </div>
+
+            <form id="loanForm" class="modal-form">
+                <div class="form-group">
+                    <label for="borrowerName">Nombre del Solicitante</label>
+                    <input type="text" id="borrowerName" placeholder="Ej. Lucía Martínez" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrowerRole">Tipo de Solicitante</label>
+                    <select id="borrowerRole" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná el rol...</option>
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor/a</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemType">Tipo de Elemento</label>
+                    <select id="itemType" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná qué se presta...</option>
+                        <option value="Libro">Libro / Ejemplar</option>
+                        <option value="Computadora">Computadora (Netbook)</option>
+                        <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
+                        <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemTitle">Título o Código del Elemento</label>
+                    <input type="text" id="itemTitle" placeholder="Ej. El principito / EJ-00482" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startInput" id="startLabel">Fecha de inicio</label>
+                        <input type="date" id="startInput" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endInput" id="endLabel">Fecha límite</label>
+                        <input type="date" id="endInput" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Préstamo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT JS PARA LA LÓGICA -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            if (!currentUser) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            const name = currentUser.name || "Usuario";
+            const role = currentUser.role || "Estudiante";
+
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userRole').textContent = role;
+            document.getElementById('welcomeName').textContent = name.split(' ')[0];
+
+            const initials = name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('userAvatar').textContent = initials || 'US';
+
+            const now = new Date();
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
+
+            const btnRegisterLoan = document.getElementById('btnRegisterLoan');
+            const menuUsers = document.getElementById('menuUsers');
+            const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+
+            if (role.toLowerCase().includes('bibliotecario')) {
+                btnRegisterLoan.classList.remove('oculto');
+                welcomeSubtitle.textContent = 'Panel de gestión integral: Podés registrar préstamos, altas de ejemplares y usuarios.';
+            } else if (role.toLowerCase().includes('profesor')) {
+                welcomeSubtitle.textContent = 'Panel Docente: Podés consultar tu historial de préstamos e inventario disponible.';
+                if (menuUsers) menuUsers.classList.add('oculto');
+            } else {
+                welcomeSubtitle.textContent = 'Panel Estudiantil: Consultá tus préstamos activos y libros disponibles en catálogo.';
+                if (menuUsers) menuUsers.classList.add('oculto');
+            }
+
+            const loanModal = document.getElementById('loanModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            const loanForm = document.getElementById('loanForm');
+
+            const openModal = () => loanModal.classList.add('active');
+            const closeModal = () => {
+                loanModal.classList.remove('active');
+                loanForm.reset();
+            };
+
+            if (btnRegisterLoan) btnRegisterLoan.addEventListener('click', openModal);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+            window.addEventListener('click', (e) => {
+                if (e.target === loanModal) closeModal();
+            });
+
+            loanForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const borrowerName = document.getElementById('borrowerName').value.trim();
+                const borrowerRole = document.getElementById('borrowerRole').value;
+                const itemType = document.getElementById('itemType').value;
+                const itemTitle = document.getElementById('itemTitle').value.trim();
+
+                if (borrowerRole === 'Estudiante' && itemType === 'Carro') {
+                    alert('Regla del sistema: Los carros de computadoras solo pueden ser prestados a Profesores.');
+                    return;
+                }
+
+                const recentList = document.getElementById('recentList');
+                
+                if (recentList.querySelector('.estado-vacio')) {
+                    recentList.innerHTML = '';
+                }
+
+                const newItem = document.createElement('div');
+                newItem.className = 'recent-item';
+
+                newItem.innerHTML = `
+                    <div class="item-icon">
+                        <i class="fa-regular fa-bookmark"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="item-title">${itemTitle}</span>
+                        <span class="item-subtitle">${borrowerName} (${borrowerRole})</span>
+                    </div>
+                    <div class="item-status">
+                        <span class="status-badge badge-green">● En curso</span>
+                        <span class="item-date">Hoy</span>
+                    </div>
+                `;
+
+                recentList.prepend(newItem);
+
+                const countActive = document.getElementById('countActive');
+                const newCount = parseInt(countActive.textContent || 0) + 1;
+                countActive.textContent = newCount;
+
+                document.getElementById('totalMovements').textContent = newCount;
+                document.getElementById('loansTodayCount').textContent = newCount;
+                
+                // Modificamos el ancho con JS dinámicamente, no con CSS inline fijo.
+                document.getElementById('loansProgressBar').style.width = '100%';
+
+                closeModal();
+            });
+
+            document.getElementById('btnLogout').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('currentUser');
+                window.location.href = '../index.html';
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA LA PÁGINA DE PRÉSTAMOS
+   ========================================================================== */
+
+/* Ajuste del menú lateral para el badge activo */
+.nav-badge {
+    background-color: #0284c7;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+}
+
+.nav-item.active .nav-badge {
+    background-color: #0284c7;
+    color: #ffffff;
+}
+
+/* Encabezado Principal */
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+}
+
+.kicker {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0284c7;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.heading-text h1 {
+    font-size: 32px;
+    font-weight: 400;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.heading-text p {
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* Pestañas (Tabs) */
+.tabs {
+    display: flex;
+    gap: 32px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.tab {
+    padding: 12px 0;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.tab.active {
+    color: #0284c7;
+    border-bottom-color: #0284c7;
+}
+
+.tab:hover:not(.active) {
+    color: #0f172a;
+}
+
+.tab-badge {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.tab-badge.red {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+/* Contenedor Blanco Principal */
+.table-container {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Filtros y Buscador */
+.filters-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-input-wrapper i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px 12px 40px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    color: #0f172a;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #0284c7;
+}
+
+.filter-select {
+    width: 200px;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #475569;
+    outline: none;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+/* Tabla de Datos */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.data-table th {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.data-table td {
+    padding: 20px 0;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Celda de Elementos (Icono + Textos) */
+.element-cell {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.element-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0284c7;
+    font-size: 20px;
+}
+
+.element-info strong {
+    display: block;
+    font-size: 14px;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.element-info span {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* Otras celdas */
+.user-cell {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.date-cell {
+    font-size: 13px;
+    color: #475569;
+}
+
+.action-cell {
+    text-align: right;
+}
+
+/* Badges de Estados */
+.status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-en-curso {
+    background-color: #dcfce7;
+    color: #166534;
+}
+.status-en-curso::before { background-color: #166534; }
+
+.status-por-vencer {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+.status-por-vencer::before { background-color: #d97706; }
+
+.status-vencido {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+.status-vencido::before { background-color: #991b1b; }
+
+/* Botón Outline de tabla */
+.btn-outline {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}

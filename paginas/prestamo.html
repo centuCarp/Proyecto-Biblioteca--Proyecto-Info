@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Préstamos</title>
+    
+    <!-- Tipografía Inter y biblioteca de íconos FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Hojas de estilos (Reutilizamos la base de inicio y sumamos la de préstamos) -->
+    <link rel="stylesheet" href="../css/inicio.css">
+    <link rel="stylesheet" href="../css/prestamo.css">
+</head>
+<body>
+
+    <div class="app-layout">
+
+        <!-- ================= BARRA LATERAL (SIDEBAR) ================= -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <div class="logo-badge">36</div>
+                    <div class="brand-titles">
+                        <h1>Biblioteca Escolar</h1>
+                        <p>E.T. N° 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <span class="nav-section-title">MENÚ PRINCIPAL</span>
+                    <ul>
+                        <li class="nav-item">
+                            <a href="inicio.html">
+                                <i class="fa-solid fa-house nav-icon"></i>
+                                <span>Inicio</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="prestamo.html">
+                                <i class="fa-regular fa-square-check nav-icon"></i>
+                                <span>Préstamos</span>
+                                <span class="nav-badge">4</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="catalogo.html">
+                                <i class="fa-regular fa-bookmark nav-icon"></i>
+                                <span>Catálogo e inventario</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" id="menuUsers">
+                            <a href="usuario.html">
+                                <i class="fa-regular fa-user nav-icon"></i>
+                                <span>Usuarios</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <a href="#" id="btnLogout" class="logout-button">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= CONTENIDO PRINCIPAL ================= -->
+        <main class="main-content">
+
+            <header class="top-bar">
+                <div class="breadcrumb">
+                    <span class="system-title">SISTEMA DE GESTIÓN</span>
+                    <h2 class="page-title">Préstamos</h2>
+                </div>
+
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">--</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Cargando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                </div>
+            </header>
+
+            <!-- Encabezado de la página de Préstamos -->
+            <section class="page-heading">
+                <div class="heading-text">
+                    <span class="kicker">CIRCULACIÓN</span>
+                    <h1>Préstamos</h1>
+                    <p>Registrá salidas, consultá estados y procesá devoluciones.</p>
+                </div>
+                
+                <!-- Botón exclusivo para bibliotecarios -->
+                <button class="btn-primary" id="btnRegisterLoan">
+                    <i class="fa-solid fa-plus"></i> Registrar préstamo
+                </button>
+            </section>
+
+            <!-- Pestañas de navegación interna -->
+            <div class="tabs">
+                <div class="tab active">Activos <span class="tab-badge">4</span></div>
+                <div class="tab">Finalizados</div>
+                <div class="tab">Vencidos <span class="tab-badge red">2</span></div>
+            </div>
+
+            <!-- Contenedor de la tabla y filtros -->
+            <div class="table-container">
+                
+                <!-- Filtros y Búsqueda -->
+                <div class="filters-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" class="search-input" placeholder="Buscar por usuario, elemento o código...">
+                    </div>
+                    <select class="filter-select">
+                        <option>Todos los tipos</option>
+                        <option>Libros</option>
+                        <option>Computadoras</option>
+                        <option>Carros</option>
+                    </select>
+                </div>
+
+                <!-- Tabla de datos -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Elemento</th>
+                            <th>Prestado A</th>
+                            <th>Fecha Límite</th>
+                            <th>Estado</th>
+                            <th></th> <!-- Columna vacía para botones -->
+                        </tr>
+                    </thead>
+                    <tbody id="prestamosTableBody">
+                        <tr id="emptyStateRow">
+                            <td colspan="5" class="estado-vacio">
+                                <i class="fa-regular fa-folder-open"></i>
+                                No hay préstamos registrados actualmente en el sistema.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA DE PERMISOS Y SESIÓN -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // 1. Control de acceso
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            if (!currentUser) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // 2. Cargar datos del usuario
+            const name = currentUser.name || "Usuario";
+            const role = currentUser.role || "Estudiante";
+
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userRole').textContent = role;
+
+            const initials = name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('userAvatar').textContent = initials || 'US';
+
+            // 3. Control de Permisos según Requisitos del Documento
+            const btnRegisterLoan = document.getElementById('btnRegisterLoan');
+            const menuUsers = document.getElementById('menuUsers');
+            const finalizeButtons = document.querySelectorAll('.btn-finalize');
+
+            // Si el rol NO es Bibliotecario/a, ocultamos las funciones de gestión
+            if (role !== 'Bibliotecario/a') {
+                
+                // Ocultar botón de registrar préstamo
+                if (btnRegisterLoan) btnRegisterLoan.style.display = 'none';
+                
+                // Ocultar botones de "Finalizar" de la tabla
+                finalizeButtons.forEach(btn => {
+                    btn.style.display = 'none';
+                });
+
+                // Ocultar el menú de Usuarios de la barra lateral
+                if (menuUsers) menuUsers.style.display = 'none';
+            }
+
+            // 4. Cierre de sesión
+            document.getElementById('btnLogout').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('currentUser');
+                window.location.href = '../index.html';
+            });
+        });
+    </script>
+
+</body>
+</html>

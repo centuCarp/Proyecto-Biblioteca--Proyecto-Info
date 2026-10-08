@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Configuración básica de codificación de caracteres y vista móvil -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Acceso al Sistema</title>
+    
+    <!-- Carga de la tipografía oficial del proyecto (Inter) desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Vinculación con la hoja de estilos externa del login -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Contenedor principal con flexbox para dividir la pantalla en dos columnas -->
+    <div class="login-container">
+        
+        <!-- ASIDE: Columna izquierda con información institucional y visual (contenido complementario) -->
+        <aside class="info-panel">
+            <div class="info-content">
+                <!-- Identificación del colegio y biblioteca -->
+                <div class="brand-header">
+                    <div class="logo-badge">36</div>
+                    <div class="brand-titles">
+                        <h1>Biblioteca Escolar</h1>
+                        <p>E.T. N° 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <!-- Resumen de características del sistema -->
+                <div class="main-info">
+                    <span class="badge">SISTEMA DE GESTIÓN INSTITUCIONAL</span>
+                    <h2>La biblioteca de la escuela, organizada en un solo lugar.</h2>
+                    <p class="description">
+                        Administrá préstamos, consultá el catálogo y mantené el inventario actualizado de forma simple y segura.
+                    </p>
+
+                    <!-- Lista de beneficios principales -->
+                    <ul class="features-list">
+                        <li>
+                            <div class="check-icon">✓</div>
+                            <div class="feature-text">
+                                <strong>Información centralizada</strong>
+                                <p>Libros, equipos y materiales siempre disponibles.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="check-icon">✓</div>
+                            <div class="feature-text">
+                                <strong>Seguimiento preciso</strong>
+                                <p>Control de préstamos y devoluciones en tiempo real.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN: Columna derecha con el formulario interactivo de autenticación -->
+        <main class="form-panel">
+            <div class="form-wrapper">
+                <span class="form-kicker">ACCESO AL SISTEMA</span>
+                <h1 class="form-title">Bienvenido/a</h1>
+                <p class="form-subtitle">Ingresá tus datos para continuar.</p>
+
+                <!-- Formulario. Nota: Los atributos 'name' servirán cuando conectemos el formulario con Flask vía request.form -->
+                <form id="authForm" class="login-form">
+                    
+                    <!-- Campo 1: Nombre del usuario -->
+                    <div class="form-group">
+                        <label for="fullname">Nombre y Apellido</label>
+                        <input 
+                            type="text" 
+                            id="fullname" 
+                            name="fullname" 
+                            placeholder="Ej. Juan Pérez" 
+                            required
+                        >
+                    </div>
+
+                    <!-- Campo 2: Selector de Rol (Permite diferenciar Alumno, Profesor y Bibliotecario) -->
+                    <div class="form-group">
+                        <label for="role">Tipo de usuario</label>
+                        <select id="role" name="role" class="form-select" required>
+                            <option value="" disabled selected>Seleccioná tu rol...</option>
+                            <option value="Bibliotecario/a">Bibliotecario/a</option>
+                            <option value="Profesor/a">Profesor/a</option>
+                            <option value="Estudiante">Estudiante</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo 3: Correo electrónico institucional -->
+                    <div class="form-group">
+                        <label for="email">Correo institucional</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="ejemplo@et36.edu.ar" 
+                            required
+                        >
+                    </div>
+
+                    <!-- Campo 4: Contraseña de acceso -->
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••" 
+                            required
+                        >
+                    </div>
+
+                    <!-- Opciones adicionales del formulario -->
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="remember" id="remember">
+                            <span class="checkmark"></span>
+                            Recordarme
+                        </label>
+                        <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <!-- Botón de envío del formulario -->
+                    <button type="submit" class="btn-submit">
+                        Ingresar al sistema <span>&rarr;</span>
+                    </button>
+                </form>
+
+                <!-- Caja de notificación dinámica para mostrar mensajes de éxito o error al usuario -->
+                <div id="alertBox" class="alert-box">
+                    <span class="alert-icon">ℹ️</span>
+                    <p id="alertMessage">Si no tenés cuenta registrada, se creará una automáticamente con estos datos.</p>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- SCRIPT DE LÓGICA (Simulación de Backend en el Cliente para la Pre-Entrega) -->
+    <script>
+        // Escuchamos el evento 'submit' del formulario
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            // Evitamos que la página se recargue por defecto para poder procesar la información por código
+            e.preventDefault();
+
+            // Capturamos los valores ingresados en los campos limpios de espacios
+            const fullname = document.getElementById('fullname').value.trim();
+            const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+
+            // Leemos los usuarios registrados almacenados en la memoria local del navegador (localStorage)
+            let users = JSON.parse(localStorage.getItem('users')) || {};
+
+            // CASO A: El usuario NO existe registrado en la base simulada
+            if (!users[email]) {
+                // Registramos al usuario guardando sus datos con el correo como clave
+                users[email] = { name: fullname, role: role, password: password };
+                localStorage.setItem('users', JSON.stringify(users));
+
+                // Guardamos la sesión activa actual
+                localStorage.setItem('currentUser', JSON.stringify({ name: fullname, role: role, email: email }));
+
+                // Feedback visual positivo
+                alertMessage.innerHTML = `<strong>¡Cuenta registrada!</strong> Bienvenido/a ${fullname} (${role}). Redirigiendo...`;
+                alertBox.style.backgroundColor = '#dcfce7';
+                alertBox.style.borderColor = '#86efac';
+                alertBox.style.color = '#166534';
+
+            } else {
+                // CASO B: El usuario SÍ existe en la base de datos simulada
+                if (users[email].password === password) {
+                    // Validamos que la contraseña sea correcta y guardamos la sesión activa
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        name: users[email].name || fullname,
+                        role: users[email].role,
+                        email: email
+                    }));
+
+                    alertMessage.innerHTML = `<strong>¡Hola de nuevo, ${users[email].name}!</strong> Iniciando sesión...`;
+                    alertBox.style.backgroundColor = '#e0f2fe';
+                    alertBox.style.borderColor = '#bae6fd';
+                    alertBox.style.color = '#0369a1';
+                } else {
+                    // Si la contraseña no coincide, mostramos mensaje de error y detenemos la ejecución
+                    alertMessage.innerHTML = `<strong>Error:</strong> Contraseña incorrecta para el correo ${email}.`;
+                    alertBox.style.backgroundColor = '#fee2e2';
+                    alertBox.style.borderColor = '#fca5a5';
+                    alertBox.style.color = '#991b1b';
+                    return;
+                }
+            }
+
+            // Redirección hacia la página de inicio dentro de la subcarpeta 'paginas/' tras 1 segundo
+            setTimeout(() => {
+                window.location.href = 'paginas/inicio.html';
+            }, 1000);
+        });
+    </script>
+
+</body>
+</html>
