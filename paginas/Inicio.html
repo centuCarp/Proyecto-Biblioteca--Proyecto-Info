@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- ÚNICO ENLACE AL CSS -->
+    <!-- Enlace al CSS -->
     <link rel="stylesheet" href="../css/inicio.css">
 </head>
 <body>
@@ -38,7 +38,6 @@
                                 <span>Inicio</span>
                             </a>
                         </li>
-                        <!-- ENLACE CONECTADO A PRÉSTAMOS -->
                         <li class="nav-item">
                             <a href="prestamo.html">
                                 <i class="fa-regular fa-square-check nav-icon"></i>
@@ -100,7 +99,8 @@
                 </button>
             </section>
 
-            <section class="kpi-grid">
+            <!-- GRILLA DE MÉTRICAS CON ID PARA REORGANIZACIÓN -->
+            <section class="kpi-grid" id="kpiContainer">
                 <div class="kpi-card">
                     <div class="kpi-icon icon-blue">
                         <i class="fa-regular fa-pen-to-square"></i>
@@ -134,7 +134,8 @@
                     </div>
                 </div>
 
-                <div class="kpi-card">
+                <!-- TARJETA CON ID PARA CONTROLAR SU VISIBILIDAD -->
+                <div class="kpi-card" id="kpiCatalogCard">
                     <div class="kpi-icon icon-green">
                         <i class="fa-regular fa-bookmark"></i>
                     </div>
@@ -153,7 +154,7 @@
                             <h3>Préstamos recientes</h3>
                             <p>Últimos movimientos del sistema</p>
                         </div>
-                        <a href="prestamos.html" class="panel-link">Ver todos &rarr;</a>
+                        <a href="prestamo.html" class="panel-link">Ver todos &rarr;</a>
                     </div>
 
                     <div class="recent-list" id="recentList">
@@ -264,7 +265,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JS PARA LA LÓGICA -->
+    <!-- SCRIPT JS CON CONTROL DE ROLES ACTUALIZADO -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -289,19 +290,33 @@
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
 
+            // CONTROL DE VISIBILIDAD SEGÚN ROL
             const btnRegisterLoan = document.getElementById('btnRegisterLoan');
             const menuUsers = document.getElementById('menuUsers');
+            const kpiCatalogCard = document.getElementById('kpiCatalogCard');
+            const kpiContainer = document.getElementById('kpiContainer');
             const welcomeSubtitle = document.getElementById('welcomeSubtitle');
 
             if (role.toLowerCase().includes('bibliotecario')) {
+                // El Bibliotecario ve todo
                 btnRegisterLoan.classList.remove('oculto');
+                if (menuUsers) menuUsers.classList.remove('oculto');
+                if (kpiCatalogCard) kpiCatalogCard.classList.remove('oculto');
                 welcomeSubtitle.textContent = 'Panel de gestión integral: Podés registrar préstamos, altas de ejemplares y usuarios.';
-            } else if (role.toLowerCase().includes('profesor')) {
-                welcomeSubtitle.textContent = 'Panel Docente: Podés consultar tu historial de préstamos e inventario disponible.';
-                if (menuUsers) menuUsers.classList.add('oculto');
             } else {
-                welcomeSubtitle.textContent = 'Panel Estudiantil: Consultá tus préstamos activos y libros disponibles en catálogo.';
+                // Alumno y Profesor NO ven: Botón Registrar Préstamo, Menú Usuarios ni Tarjeta de Catálogo
+                btnRegisterLoan.classList.add('oculto');
                 if (menuUsers) menuUsers.classList.add('oculto');
+                if (kpiCatalogCard) kpiCatalogCard.classList.add('oculto');
+
+                // Reorganiza la grilla de métricas a 3 columnas iguales
+                if (kpiContainer) kpiContainer.classList.add('kpi-grid-3');
+
+                if (role.toLowerCase().includes('profesor')) {
+                    welcomeSubtitle.textContent = 'Panel Docente: Podés consultar tu historial de préstamos e inventario disponible.';
+                } else {
+                    welcomeSubtitle.textContent = 'Panel Estudiantil: Consultá tus préstamos activos y libros disponibles en catálogo.';
+                }
             }
 
             const loanModal = document.getElementById('loanModal');
@@ -367,8 +382,6 @@
 
                 document.getElementById('totalMovements').textContent = newCount;
                 document.getElementById('loansTodayCount').textContent = newCount;
-                
-                // Modificamos el ancho con JS dinámicamente, no con CSS inline fijo.
                 document.getElementById('loansProgressBar').style.width = '100%';
 
                 closeModal();

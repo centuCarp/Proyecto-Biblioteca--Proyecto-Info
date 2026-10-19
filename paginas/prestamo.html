@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca Escolar - Préstamos</title>
     
-    <!-- Tipografía Inter y biblioteca de íconos FontAwesome -->
+    <!-- Tipografía Inter e íconos FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Hojas de estilos (Reutilizamos la base de inicio y sumamos la de préstamos) -->
+    <!-- Hojas de estilos -->
     <link rel="stylesheet" href="../css/inicio.css">
     <link rel="stylesheet" href="../css/prestamo.css">
 </head>
@@ -43,17 +43,17 @@
                             <a href="prestamo.html">
                                 <i class="fa-regular fa-square-check nav-icon"></i>
                                 <span>Préstamos</span>
-                                <span class="nav-badge">4</span>
+                                <span class="nav-badge" id="sidebarBadge" style="display: none;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="catalogo.html">
+                            <a href="#">
                                 <i class="fa-regular fa-bookmark nav-icon"></i>
                                 <span>Catálogo e inventario</span>
                             </a>
                         </li>
                         <li class="nav-item" id="menuUsers">
-                            <a href="usuario.html">
+                            <a href="#">
                                 <i class="fa-regular fa-user nav-icon"></i>
                                 <span>Usuarios</span>
                             </a>
@@ -89,7 +89,7 @@
                 </div>
             </header>
 
-            <!-- Encabezado de la página de Préstamos -->
+            <!-- Encabezado de la página -->
             <section class="page-heading">
                 <div class="heading-text">
                     <span class="kicker">CIRCULACIÓN</span>
@@ -97,37 +97,35 @@
                     <p>Registrá salidas, consultá estados y procesá devoluciones.</p>
                 </div>
                 
-                <!-- Botón exclusivo para bibliotecarios -->
-                <button class="btn-primary" id="btnRegisterLoan">
+                <button class="btn-primary" id="btnRegisterLoan" style="display: none;">
                     <i class="fa-solid fa-plus"></i> Registrar préstamo
                 </button>
             </section>
 
-            <!-- Pestañas de navegación interna -->
+            <!-- Pestañas de filtrado dinámico -->
             <div class="tabs">
-                <div class="tab active">Activos <span class="tab-badge">4</span></div>
-                <div class="tab">Finalizados</div>
-                <div class="tab">Vencidos <span class="tab-badge red">2</span></div>
+                <div class="tab active" data-status="En curso">Activos <span class="tab-badge" id="tabActiveCount">0</span></div>
+                <div class="tab" data-status="Finalizado">Finalizados <span class="tab-badge" id="tabFinishedCount">0</span></div>
+                <div class="tab" data-status="Vencido">Vencidos <span class="tab-badge red" id="tabOverdueCount">0</span></div>
             </div>
 
-            <!-- Contenedor de la tabla y filtros -->
+            <!-- Contenedor de la tabla -->
             <div class="table-container">
                 
-                <!-- Filtros y Búsqueda -->
                 <div class="filters-bar">
                     <div class="search-input-wrapper">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" class="search-input" placeholder="Buscar por usuario, elemento o código...">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por usuario, elemento o código...">
                     </div>
-                    <select class="filter-select">
-                        <option>Todos los tipos</option>
-                        <option>Libros</option>
-                        <option>Computadoras</option>
-                        <option>Carros</option>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="Todos">Todos los tipos</option>
+                        <option value="Libro">Libros</option>
+                        <option value="Computadora">Computadoras</option>
+                        <option value="Carro">Carros</option>
+                        <option value="Otros">Otros</option>
                     </select>
                 </div>
 
-                <!-- Tabla de datos -->
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -135,16 +133,11 @@
                             <th>Prestado A</th>
                             <th>Fecha Límite</th>
                             <th>Estado</th>
-                            <th></th> <!-- Columna vacía para botones -->
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="prestamosTableBody">
-                        <tr id="emptyStateRow">
-                            <td colspan="5" class="estado-vacio">
-                                <i class="fa-regular fa-folder-open"></i>
-                                No hay préstamos registrados actualmente en el sistema.
-                            </td>
-                        </tr>
+                        <!-- Las filas se renderizan dinámicamente -->
                     </tbody>
                 </table>
             </div>
@@ -152,11 +145,58 @@
         </main>
     </div>
 
-    <!-- SCRIPT DE LÓGICA DE PERMISOS Y SESIÓN -->
+    <!-- MODAL PARA REGISTRAR PRÉSTAMO -->
+    <div id="loanModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Registrar Nuevo Préstamo</h2>
+                <button id="closeModalBtn" class="modal-close">&times;</button>
+            </div>
+
+            <form id="loanForm" class="modal-form">
+                <div class="form-group">
+                    <label for="borrowerName">Nombre del Solicitante</label>
+                    <input type="text" id="borrowerName" placeholder="Ej. Lucía Martínez" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrowerRole">Tipo de Solicitante</label>
+                    <select id="borrowerRole" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná el rol...</option>
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor/a</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemType">Tipo de Elemento</label>
+                    <select id="itemType" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná qué se presta...</option>
+                        <option value="Libro">Libro / Ejemplar</option>
+                        <option value="Computadora">Computadora (Netbook)</option>
+                        <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
+                        <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemTitle">Título o Código del Elemento</label>
+                    <input type="text" id="itemTitle" placeholder="Ej. El principito / EJ-00482" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Préstamo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA Y CAMBIO DE PESTAÑAS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // 1. Control de acceso
+            // 1. Control de acceso (Guard)
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
             if (!currentUser) {
@@ -164,7 +204,7 @@
                 return;
             }
 
-            // 2. Cargar datos del usuario
+            // 2. Inyección de datos del usuario activo
             const name = currentUser.name || "Usuario";
             const role = currentUser.role || "Estudiante";
 
@@ -174,32 +214,188 @@
             const initials = name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
             document.getElementById('userAvatar').textContent = initials || 'US';
 
-            // 3. Control de Permisos según Requisitos del Documento
+            // 3. Control de Permisos por Rol
             const btnRegisterLoan = document.getElementById('btnRegisterLoan');
             const menuUsers = document.getElementById('menuUsers');
-            const finalizeButtons = document.querySelectorAll('.btn-finalize');
+            const isBibliotecario = role.toLowerCase().includes('bibliotecario');
 
-            // Si el rol NO es Bibliotecario/a, ocultamos las funciones de gestión
-            if (role !== 'Bibliotecario/a') {
-                
-                // Ocultar botón de registrar préstamo
+            if (isBibliotecario) {
+                if (btnRegisterLoan) btnRegisterLoan.style.display = 'flex';
+                if (menuUsers) menuUsers.style.display = 'block';
+            } else {
                 if (btnRegisterLoan) btnRegisterLoan.style.display = 'none';
-                
-                // Ocultar botones de "Finalizar" de la tabla
-                finalizeButtons.forEach(btn => {
-                    btn.style.display = 'none';
-                });
-
-                // Ocultar el menú de Usuarios de la barra lateral
                 if (menuUsers) menuUsers.style.display = 'none';
             }
 
-            // 4. Cierre de sesión
+            // Variable global para controlar la pestaña activa (Por defecto 'En curso')
+            let currentTabStatus = 'En curso';
+
+            // 4. Función Principal: Renderizar Tabla y Actualizar Contadores
+            window.renderTable = () => {
+                const loans = JSON.parse(localStorage.getItem('loansList')) || [];
+                const tableBody = document.getElementById('prestamosTableBody');
+                const sidebarBadge = document.getElementById('sidebarBadge');
+
+                // Contadores generales
+                const activeLoans = loans.filter(l => l.status === 'En curso');
+                const finishedLoans = loans.filter(l => l.status === 'Finalizado');
+                const overdueLoans = loans.filter(l => l.status === 'Vencido');
+
+                document.getElementById('tabActiveCount').textContent = activeLoans.length;
+                document.getElementById('tabFinishedCount').textContent = finishedLoans.length;
+                document.getElementById('tabOverdueCount').textContent = overdueLoans.length;
+
+                // Actualizar Badge de la Barra Lateral
+                if (activeLoans.length > 0) {
+                    sidebarBadge.textContent = activeLoans.length;
+                    sidebarBadge.style.display = 'inline-block';
+                } else {
+                    sidebarBadge.style.display = 'none';
+                }
+
+                // Filtrar por estado de la pestaña actual
+                let filteredLoans = loans.filter(l => l.status === currentTabStatus);
+
+                // Filtrar por campo de búsqueda
+                const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+                if (searchQuery) {
+                    filteredLoans = filteredLoans.filter(l => 
+                        l.itemTitle.toLowerCase().includes(searchQuery) ||
+                        l.borrowerName.toLowerCase().includes(searchQuery)
+                    );
+                }
+
+                // Filtrar por tipo de elemento
+                const typeQuery = document.getElementById('typeFilter').value;
+                if (typeQuery !== 'Todos') {
+                    filteredLoans = filteredLoans.filter(l => l.itemType === typeQuery);
+                }
+
+                // Renderizado en la tabla
+                tableBody.innerHTML = '';
+
+                if (filteredLoans.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px 10px;">
+                                <i class="fa-regular fa-folder-open" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                                No hay préstamos ${currentTabStatus.toLowerCase()}s en esta sección.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                filteredLoans.forEach((loan) => {
+                    const tr = document.createElement('tr');
+                    
+                    // Definir color del badge de estado
+                    let badgeClass = 'badge-green';
+                    if (loan.status === 'Finalizado') badgeClass = 'badge-gray';
+                    if (loan.status === 'Vencido') badgeClass = 'badge-red';
+
+                    tr.innerHTML = `
+                        <td><strong>${loan.itemTitle}</strong></td>
+                        <td>${loan.borrowerName} (${loan.borrowerRole})</td>
+                        <td>${loan.dueDate || 'Hoy'}</td>
+                        <td><span class="status-badge ${badgeClass}">● ${loan.status}</span></td>
+                        <td style="text-align: right;">
+                            ${(isBibliotecario && loan.status === 'En curso') ? 
+                                `<button class="btn-secondary" onclick="finalizeLoan(${loan.id})" style="padding: 4px 10px; font-size: 12px;">Finalizar</button>` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            };
+
+            // 5. Cambio dinámico de Pestañas
+            const tabs = document.querySelectorAll('.tabs .tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentTabStatus = tab.getAttribute('data-status');
+                    renderTable();
+                });
+            });
+
+            // Escuchar filtros de búsqueda
+            document.getElementById('searchInput').addEventListener('input', renderTable);
+            document.getElementById('typeFilter').addEventListener('change', renderTable);
+
+            // 6. Acción para Finalizar un Préstamo
+            window.finalizeLoan = (id) => {
+                let loans = JSON.parse(localStorage.getItem('loansList')) || [];
+                loans = loans.map(loan => {
+                    if (loan.id === id) {
+                        loan.status = 'Finalizado';
+                    }
+                    return loan;
+                });
+                localStorage.setItem('loansList', JSON.stringify(loans));
+                renderTable();
+            };
+
+            // 7. Lógica del Modal (Apertura / Cierre / Guardado)
+            const loanModal = document.getElementById('loanModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            const loanForm = document.getElementById('loanForm');
+
+            const openModal = () => loanModal.classList.add('active');
+            const closeModal = () => {
+                loanModal.classList.remove('active');
+                loanForm.reset();
+            };
+
+            if (btnRegisterLoan) btnRegisterLoan.addEventListener('click', openModal);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+            window.addEventListener('click', (e) => {
+                if (e.target === loanModal) closeModal();
+            });
+
+            loanForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const borrowerName = document.getElementById('borrowerName').value.trim();
+                const borrowerRole = document.getElementById('borrowerRole').value;
+                const itemType = document.getElementById('itemType').value;
+                const itemTitle = document.getElementById('itemTitle').value.trim();
+
+                if (borrowerRole === 'Estudiante' && itemType === 'Carro') {
+                    alert('Regla del sistema: Los carros de computadoras solo pueden ser prestados a Profesores.');
+                    return;
+                }
+
+                const newLoan = {
+                    id: Date.now(),
+                    borrowerName,
+                    borrowerRole,
+                    itemType,
+                    itemTitle,
+                    dueDate: 'Hoy',
+                    status: 'En curso'
+                };
+
+                const loans = JSON.parse(localStorage.getItem('loansList')) || [];
+                loans.unshift(newLoan);
+                localStorage.setItem('loansList', JSON.stringify(loans));
+
+                closeModal();
+                renderTable();
+            });
+
+            // 8. Cierre de sesión
             document.getElementById('btnLogout').addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.removeItem('currentUser');
                 window.location.href = '../index.html';
             });
+
+            // Carga inicial de datos
+            renderTable();
         });
     </script>
 
