@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Vinculación con la hoja de estilos externa del login -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
@@ -203,7 +203,7 @@
 
             // Redirección hacia la página de inicio dentro de la subcarpeta 'paginas/' tras 1 segundo
             setTimeout(() => {
-                window.location.href = 'paginas/inicio.html';
+                window.location.href = '/inicio';
             }, 1000);
         });
     </script>

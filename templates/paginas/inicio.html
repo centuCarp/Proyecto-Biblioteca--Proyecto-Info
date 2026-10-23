@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <!-- Enlace al CSS -->
-    <link rel="stylesheet" href="../css/inicio.css">
-</head>
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
+|  <link rel="stylesheet" href="{{ url_for('static', filename='css/prestamo.css') }}">
 <body>
 
     <div class="app-layout">
@@ -33,15 +33,16 @@
                     <span class="nav-section-title">MENÚ PRINCIPAL</span>
                     <ul>
                         <li class="nav-item active">
-                            <a href="inicio.html">
+                            <a href="/inicio">
                                 <i class="fa-solid fa-house nav-icon"></i>
                                 <span>Inicio</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="prestamo.html">
+                            <a href="/prestamos">
                                 <i class="fa-regular fa-square-check nav-icon"></i>
                                 <span>Préstamos</span>
+                                <span class="nav-badge" id="sidebarBadge" style="display: none;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
