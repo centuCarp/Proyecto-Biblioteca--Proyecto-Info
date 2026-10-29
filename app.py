@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_mysql import MySQL
+from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_para_sesiones' # Necesario para Flask Sessions
@@ -8,10 +8,17 @@ app.secret_key = 'clave_secreta_para_sesiones' # Necesario para Flask Sessions
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'       # Cambiá por tu usuario de MySQL
 app.config['MYSQL_PASSWORD'] = ''   # Cambiá por tu contraseña de MySQL
-app.config['MYSQL_DB'] = 'BD_Biblioteca'  # Nombre de tu base de datos
+app.config['MYSQL_DB'] = 'Biblioteca'  # Nombre de tu base de datos
 
 mysql = MySQL(app)
 
+@app.route('/logout')
+def logout():
+    # Limpiamos todas las variables almacenadas en la sesión de Flask
+    session.clear()
+    # Redirigimos al usuario de vuelta al login principal
+    return redirect(url_for('login'))
+    
 # Ruta de Login (Página principal)
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -26,7 +33,8 @@ def login():
         cursor = mysql.connection.cursor()
         
         # Ejecutamos una consulta segura utilizando %s para evitar inyecciones SQL
-        cursor.execute("SELECT * FROM Usuarios WHERE Email = %s AND Password = %s", (email, password))
+        cursor.execute("SELECT * FROM Usuarios WHERE Email = %s AND Contraseña = %s", (email, password))
+        
         
         # Obtenemos un único registro (el primer usuario que coincida)
         user = cursor.fetchone()
@@ -42,8 +50,9 @@ def login():
             session['name'] = user[1]         # Guardamos el Nombre Completo (columna 1)
             
             # Extraemos los permisos de rol de las columnas booleanas de la BD
-            es_profesor = user[4]             # Columna esProfesor
-            es_bibliotecario = user[5]        # Columna esBibliotecario
+            es_profesor = user[5]             # Columna esProfesor
+            es_bibliotecario = user[6]        # Columna esBibliotecario
+            
             
             # Asignamos un texto de rol legible según los permisos de la base de datos
             if es_bibliotecario:
@@ -73,8 +82,8 @@ def registro():
         tipo_usuario = request.form['tipo_usuario']
         
         # Definimos los valores booleanos según el rol seleccionado
-        es_profesor = True if tipo_usuario == 'profesor' else False
         es_bibliotecario = True if tipo_usuario == 'bibliotecario' else False
+        es_profesor = True if tipo_usuario == 'profesor' else False
         
         cursor = mysql.connection.cursor()
         
@@ -88,14 +97,14 @@ def registro():
         
         # Insertamos el nuevo usuario en la base de datos
         cursor.execute(
-            "INSERT INTO Usuarios (Nombre_Completo, DNI, Email_Contacto, Password, esProfesor, esBibliotecario) VALUES (%s, %s, %s, %s, %s, %s)",
+            "INSERT INTO Usuarios (Nombre_Completo, DNI, Email, Contraseña, esProfesor, esBibliotecario) VALUES (%s, %s, %s, %s, %s, %s)",
             (nombre, dni, email, password, es_profesor, es_bibliotecario)
         )
         mysql.connection.commit()
         cursor.close()
         
         # Redirigimos al login una vez creado exitosamente
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
         
     return render_template('registro.html')
 
@@ -120,7 +129,7 @@ def inicio():
     cursor.execute("SELECT COUNT(*) FROM Prestamos_Elementos")
     total_prestamos += cursor.fetchone()[0]
     
-    cursor.execute("SELECT COUNT(E.ID) FROM Ejemplares E INNER JOIN Prestamos_Libros PL ON E.ID = PL.ID.Ejemplar WHERE E.ID NOT IN (SELECT ID_Ejemplar FROM Prestamos_Libros WHERE Fecha_Devolucion IS NULL)")
+    cursor.execute("SELECT COUNT(E.ID) FROM Ejemplares E INNER JOIN Prestamos_Libros PL ON E.ID = PL.ID_Ejemplar WHERE E.ID NOT IN (SELECT ID_Ejemplar FROM Prestamos_Libros WHERE Fecha_Devolucion IS NULL)")
     libros_disponibles = cursor.fetchone()[0]
     
     # Cerramos el cursor de la base de datos
@@ -131,36 +140,50 @@ def inicio():
                            total_prestamos=total_prestamos, 
                            libros_disponibles=libros_disponibles)
 
+
+
 @app.route('/inicio/registrar_prestamo', methods=['POST'])
 def registrar_prestamo():
+    # Verificamos que el usuario tenga sesión activa
     if not session.get('loggedin'):
         return redirect(url_for('login'))
-
-    # Capturamos los datos enviados desde el formulario HTML
-    nombre_solicitante = request.form['borrowerName']
-    tipo_solicitante = request.form['borrowerRole']
-    tipo_elemento = request.form['itemType']
-    titulo_elemento = request.form['itemTitle']
-    fecha_inicio = request.form['fechaInicio']
-    fecha_limite = request.form['fechaLimite']
-
-    # Guardamos en la base de datos
-    cursor = mysql.connection.cursor()
-
-    #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    # Hacer que el insert sea dinámico según el tipo de elemento prestado y cambiar los campos según corresponda. Acá se asume que hay una tabla unificada de préstamos para simplificar el ejemplo.
-    cursor.execute("""
-        INSERT INTO prestamos (nombre_solicitante, tipo_solicitante, tipo_elemento, titulo_elemento, fecha_inicio, fecha_limite) 
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (nombre_solicitante, tipo_solicitante, tipo_elemento, titulo_elemento, fecha_inicio, fecha_limite))
-    
-    mysql.connection.commit()
-    cursor.close()
-
-    # Redirigimos de vuelta al inicio para que se actualice el contador de préstamos automáticamente
-    return redirect(url_for('inicio'))
-
-
+        
+    if request.method == 'POST':
+        # Capturamos los datos enviados desde el formulario modal de inicio.html
+        nombre_solicitante = request.form['nombreSolicitante']
+        tipo_prestamo = request.form['tipoPrestamo']
+        item_title = request.form['itemTitle']
+        fecha_limite = request.form['fechaLimite']
+        
+        cursor = mysql.connection.cursor()
+        
+        # 1. Buscamos el ID del usuario en la tabla Usuarios mediante su Nombre_Completo
+        cursor.execute("SELECT ID FROM Usuarios WHERE Nombre_Completo = %s", (nombre_solicitante,))
+        usuario = cursor.fetchone()
+        
+        if usuario:
+            id_usuario = usuario[0]
+            
+            # 2. Insertamos en la tabla correspondiente según si es Computadora o Carro
+            # Usamos los nombres de columnas correctos de tus tablas de préstamos
+            if tipo_prestamo == 'Computadora':
+                cursor.execute(
+                    "INSERT INTO Prestamos_Computadoras (ID_Usuario, Numero_Computadora, Hora_Inicio, Hora_Limite) VALUES (%s, %s, NOW(), %s,)",
+                    (id_usuario, item_title, fecha_limite)
+                )
+            elif tipo_prestamo == 'Carro':
+                cursor.execute(
+                    "INSERT INTO Prestamos_Carros (ID_Profesor, Numero_Carro, Hora_Inicio, Hora_Limite, Estado) VALUES (%s, %s, NOW(), %s,)",
+                    (id_usuario, item_title, fecha_limite)
+                )
+                
+            # Guardamos los cambios en la base de datos de MySQL
+            mysql.connection.commit()
+            
+        cursor.close()
+        
+        # Redirigimos de vuelta al inicio para actualizar la vista
+        return redirect(url_for('inicio'))
 
 # Ruta de Préstamos: SELECT dinámico unificado de todas las tablas de préstamos
 @app.route('/prestamos')
@@ -229,6 +252,91 @@ def prestamos():
         })
         
     return render_template('prestamo.html', prestamos=lista_prestamos)
+
+
+# Ruta de Catálogo e Inventario corregida
+@app.route('/catalogo')
+def catalogo():
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+        
+    cursor = mysql.connection.cursor()
+    
+    # Métricas (KPIs) superiores
+    cursor.execute("SELECT COUNT(*) FROM Ejemplares")
+    total_ejemplares = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM Computadoras")
+    total_computadoras = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM Carros")
+    total_carros = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM Elementos")
+    total_elementos = cursor.fetchone()[0]
+    
+    # Consulta unificada corregida (sin la columna C.ID_Carro que causaba el error)
+    cursor.execute("""
+        SELECT L.Titulo as Recurso, CONCAT('ISBN: ', L.ISBN) as Detalle, 'Libro' as Tipo, CONCAT('EJ-', E.ID) as Codigo, 'Disponible' as Disponibilidad
+        FROM Ejemplares E
+        JOIN Libros L ON E.ISBN_Libro = L.ISBN
+        UNION ALL
+        SELECT CONCAT('Computadora ', C.Numero) as Recurso, 'Equipo operativo' as Detalle, 'Computadora' as Tipo, CONCAT('PC-', C.ID) as Codigo, 'Disponible' as Disponibilidad
+        FROM Computadoras C
+        UNION ALL
+        SELECT CONCAT('Carro de computadoras ', CA.Numero) as Recurso, CONCAT(CA.Cantidad_Computadora, ' equipos') as Detalle, 'Carro' as Tipo, CONCAT('CA-', CA.ID) as Codigo, 'Disponible' as Disponibilidad
+        FROM Carros CA
+        UNION ALL
+        SELECT E.Tipo as Recurso, 'Elemento institucional' as Detalle, 'Elemento' as Tipo, E.Codigo as Codigo, 'Disponible' as Disponibilidad
+        FROM Elementos E
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    
+    recursos = []
+    for row in data:
+        recursos.append({
+            'recurso': row[0],
+            'detalle': row[1],
+            'tipo': row[2],
+            'codigo': row[3],
+            'disponibilidad': row[4]
+        })
+        
+    return render_template('catalogo.html', 
+                           total_ejemplares=total_ejemplares,
+                           total_computadoras=total_computadoras,
+                           total_carros=total_carros,
+                           total_elementos=total_elementos,
+                           recursos=recursos)
+
+# Ruta para procesar el formulario de Dar de Alta (INSERT INTO)
+@app.route('/dar_de_alta', methods=['POST'])
+def dar_de_alta():
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+        
+    tipo = request.form.get('tipo_recurso')
+    titulo = request.form.get('titulo')
+    codigo = request.form.get('codigo')
+    isbn_numero = request.form.get('isbn_numero')
+    descripcion = request.form.get('descripcion')
+    
+    cursor = mysql.connection.cursor()
+    
+    if tipo == 'Libro':
+        cursor.execute("INSERT INTO Libros (ISBN, Titulo) VALUES (%s, %s) ON DUPLICATE KEY UPDATE Titulo=%s", (isbn_numero, titulo, titulo))
+        cursor.execute("INSERT INTO Ejemplares (ISBN_Libro) VALUES (%s)", (isbn_numero,))
+    elif tipo == 'Computadora':
+        cursor.execute("INSERT INTO Computadoras (Numero, Estado) VALUES (%s, 'Operativo')", (codigo,))
+    elif tipo == 'Carro':
+        cursor.execute("INSERT INTO Carros (Numero, Cantidad_Computadora) VALUES (%s, %s)", (codigo, isbn_numero or 10))
+    elif tipo == 'Elemento':
+        cursor.execute("INSERT INTO Elementos (Codigo, Tipo) VALUES (%s, %s)", (codigo, titulo))
+        
+    mysql.connection.commit()
+    cursor.close()
+    return redirect(url_for('catalogo'))
     
 if __name__ == '__main__':
     app.run(debug=True)

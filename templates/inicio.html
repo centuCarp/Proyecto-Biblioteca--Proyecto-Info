@@ -11,9 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Enlace al CSS -->
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
-|  <link rel="stylesheet" href="{{ url_for('static', filename='css/prestamo.css') }}">
+    <!-- Enlaces al CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/prestamo.css') }}">
+</head>
 <body>
 
     <div class="app-layout">
@@ -33,25 +34,25 @@
                     <span class="nav-section-title">MENÚ PRINCIPAL</span>
                     <ul>
                         <li class="nav-item active">
-                            <a href="/inicio">
+                            <a href="{{ url_for('inicio') }}">
                                 <i class="fa-solid fa-house nav-icon"></i>
                                 <span>Inicio</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="/prestamos">
+                            <a href="{{ url_for('prestamos') }}">
                                 <i class="fa-regular fa-square-check nav-icon"></i>
                                 <span>Préstamos</span>
                                 <span class="nav-badge" id="sidebarBadge" style="display: none;">0</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#">
+                            <a href="{{ url_for('catalogo') }}">
                                 <i class="fa-regular fa-bookmark nav-icon"></i>
                                 <span>Catálogo e inventario</span>
                             </a>
                         </li>
-                        {% if session.esBibliotecario %}
+                        {% if session.role == "Bibliotecario/a" %}
                             <li class="nav-item" id="menuUsers">
                                 <a href="/">
                                     <i class="fa-regular fa-user nav-icon"></i>
@@ -64,7 +65,7 @@
             </div>
 
             <div class="sidebar-bottom">
-                <a href="#" id="btnLogout" class="logout-button">
+                <a href="{{ url_for('logout') }}" id="btnLogout" class="logout-button">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Cerrar sesión</span>
                 </a>
@@ -96,16 +97,16 @@
                     <h1 class="welcome-title">Bienvenido/a, {{ session.name }}</h1>
                     <p class="welcome-subtitle" id="welcomeSubtitle">Resumen de la actividad general de la biblioteca.</p>
                 </div>
-                {% if session.esBibliotecario %}
-                    <button class="btn-primary oculto" id="btnRegisterLoan">
+                {% if session.role == "Bibliotecario/a" %}
+                    <button class="btn-primary" id="btnRegisterLoan">
                         <i class="fa-solid fa-plus"></i> Registrar préstamo
                     </button>
                 {% endif %}
             </section>
 
-            <!-- GRILLA DE MÉTRICAS CON ID PARA REORGANIZACIÓN -->
+            <!-- GRILLA DE MÉTRICAS -->
             <section class="kpi-grid" id="kpiContainer">
-                {% if session.esBibliotecario %}
+                {% if session.role == "Bibliotecario/a" %}
                     <div class="kpi-card">
                         <div class="kpi-icon icon-blue">
                             <i class="fa-regular fa-pen-to-square"></i>
@@ -140,7 +141,6 @@
                     </div>
                 {% endif %}
 
-                <!-- TARJETA CON ID PARA CONTROLAR SU VISIBILIDAD -->
                 <div class="kpi-card" id="kpiCatalogCard">
                     <div class="kpi-icon icon-green">
                         <i class="fa-regular fa-bookmark"></i>
@@ -160,12 +160,12 @@
                             <h3>Préstamos recientes</h3>
                             <p>Últimos movimientos del sistema</p>
                         </div>
-                        <a href="prestamo.html" class="panel-link">Ver todos &rarr;</a>
+                        <a href="/prestamos" class="panel-link">Ver todos &rarr;</a>
                     </div>
 
                     <div class="recent-list" id="recentList">
-                        <div class="estado-vacio">
-                            <i class="fa-regular fa-folder-open"></i>
+                        <div class="estado-vacio" style="color: #94a3b8; padding: 20px 0; text-align: center;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
                             No hay préstamos registrados actualmente en el sistema.
                         </div>
                     </div>
@@ -207,126 +207,93 @@
                         </div>
 
                         <button class="btn-secondary">Consultar movimientos</button>
+                        <a href="{{ url_for('prestamos') }}" id="btnLogout" class="logout-button">
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- MODAL DE PRÉSTAMO -->
-    <form id="loanForm" class="modal-overlay" action="/inicio/registrar_prestamo" method="POST">
-        <div class="form-group">
-            <label for="borrowerName">Nombre del Solicitante</label>
-            <input type="text" id="borrowerName" name="borrowerName" placeholder="Ej. Lucía Martínez" required>
-        </div>
-
-        <div class="form-group">
-            <label for="borrowerRole">Tipo de Solicitante</label>
-            <select id="borrowerRole" name="borrowerRole" class="form-select" required>
-                <option value="" disabled selected>Seleccioná el rol...</option>
-                <option value="Estudiante">Estudiante</option>
-                <option value="Profesor">Profesor/a</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="itemType">Tipo de Elemento</label>
-            <select id="itemType" name="itemType" class="form-select" required>
-                <option value="" disabled selected>Seleccioná qué se presta...</option>
-                <option value="Libro">Libro / Ejemplar</option>
-                <option value="Computadora">Computadora (Netbook)</option>
-                <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
-                <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
-            </select>
-        </div>
-
-        # Hacer que el campo del título o código funcione como un buscador de elementos en el catálogo, mostrando sugerencias a medida que se escribe para facilitar la selección del elemento
-        <div class="form-group">
-            <label for="itemTitle">Título o Código del Elemento</label>
-            <input type="text" id="itemTitle" name="itemTitle" placeholder="Ej. El principito / EJ-00482" required>
-        </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label for="startInput">Fecha de inicio</label>
-                <input type="date" id="startInput" name="fechaInicio" class="form-control" required>
+    <!-- MODAL DE PRÉSTAMO (Estructura corregida con modal-overlay y modal-card) -->
+    <div id="loanModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Registrar Nuevo Préstamo</h2>
+                <button id="closeModalBtn" class="modal-close">&times;</button>
             </div>
-            <div class="form-group">
-                <label for="endInput">Fecha límite</label>
-                <input type="date" id="endInput" name="fechaLimite" class="form-control" required>
-            </div>
-        </div>
-        
-        <div class="modal-actions">
-            <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
-            <button type="submit" class="btn-primary">Guardar Préstamo</button>
-        </div>
-    </form>
 
-    <!-- SCRIPT JS CON CONTROL DE ROLES ACTUALIZADO -->
+            <form id="loanForm" class="modal-form" action="/inicio/registrar_prestamo" method="POST">
+                
+                <div class="form-group">
+                    <label for="rolSolicitante">Tipo de Solicitante</label>
+                    <select id="rolSolicitante" name="rolSolicitante" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná el rol...</option>
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor/a</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nombreSolicitante">Nombre del Solicitante</label>
+                    <input type="text" id="nombreSolicitante" name="nombreSolicitante" placeholder="Ej. Lucía Martínez" required>
+                </div>
+
+                <!-- Selector principal de tipo de elemento -->
+                <div class="form-group">
+                    <label for="itemType">Tipo de Préstamo</label>
+                    <select id="itemType" name="itemType" class="form-select" required onchange="verificarTipoElemento()">
+                        <option value="" disabled selected>Seleccioná una opción...</option>
+                        <option value="Libro">Libro</option>
+                        <option value="Computadora">Computadora</option>
+                        <option value="Carro">Carro</option>
+                    </select>
+                </div>
+
+                <!-- Contenedores específicos para Computadora (inicialmente ocultos con style="display: none;") -->
+                <div id="seccionComputadora" style="display: none;">
+                    <div class="form-group">
+                        <label for="numCarro">Número de Carro</label>
+                        <select id="numCarro" name="numCarro" class="form-select">
+                            <option value="" disabled selected>Elegí el carro...</option>
+                            <option value="Carro 1">Carro 1</option>
+                            <option value="Carro 2">Carro 2</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numCompu">Número de Compu</label>
+                        <input type="number" id="numCompu" name="numCompu" placeholder="Ej. 15">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemTitle">Título o Código del Elemento</label>
+                    <input type="text" id="itemTitle" name="itemTitle" placeholder="Ej. Netbook ID-00482" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="endInput">Fecha / Hora Límite</label>
+                    <input type="date" id="endInput" name="fechaLimite" class="form-control" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Préstamo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT PARA ABRIR Y CERRAR EL MODAL -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-            if (!currentUser) {
-                window.location.href = '../index.html';
-                return;
-            }
-
-            const name = currentUser.name || "Usuario";
-            const role = currentUser.role || "Estudiante";
-
-            document.getElementById('userName').textContent = name;
-            document.getElementById('userRole').textContent = role;
-            document.getElementById('welcomeName').textContent = name.split(' ')[0];
-
-            const initials = name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
-            document.getElementById('userAvatar').textContent = initials || 'US';
-
-            const now = new Date();
-            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', options).toUpperCase();
-
-            // CONTROL DE VISIBILIDAD SEGÚN ROL
-            const btnRegisterLoan = document.getElementById('btnRegisterLoan');
-            const menuUsers = document.getElementById('menuUsers');
-            const kpiCatalogCard = document.getElementById('kpiCatalogCard');
-            const kpiContainer = document.getElementById('kpiContainer');
-            const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-
-            if (role.toLowerCase().includes('bibliotecario')) {
-                // El Bibliotecario ve todo
-                btnRegisterLoan.classList.remove('oculto');
-                if (menuUsers) menuUsers.classList.remove('oculto');
-                if (kpiCatalogCard) kpiCatalogCard.classList.remove('oculto');
-                welcomeSubtitle.textContent = 'Panel de gestión integral: Podés registrar préstamos, altas de ejemplares y usuarios.';
-            } else {
-                // Alumno y Profesor NO ven: Botón Registrar Préstamo, Menú Usuarios ni Tarjeta de Catálogo
-                btnRegisterLoan.classList.add('oculto');
-                if (menuUsers) menuUsers.classList.add('oculto');
-                if (kpiCatalogCard) kpiCatalogCard.classList.add('oculto');
-
-                // Reorganiza la grilla de métricas a 3 columnas iguales
-                if (kpiContainer) kpiContainer.classList.add('kpi-grid-3');
-
-                if (role.toLowerCase().includes('profesor')) {
-                    welcomeSubtitle.textContent = 'Panel Docente: Podés consultar tu historial de préstamos e inventario disponible.';
-                } else {
-                    welcomeSubtitle.textContent = 'Panel Estudiantil: Consultá tus préstamos activos y libros disponibles en catálogo.';
-                }
-            }
-
             const loanModal = document.getElementById('loanModal');
+            const btnRegisterLoan = document.getElementById('btnRegisterLoan');
             const closeModalBtn = document.getElementById('closeModalBtn');
             const cancelModalBtn = document.getElementById('cancelModalBtn');
-            const loanForm = document.getElementById('loanForm');
 
             const openModal = () => loanModal.classList.add('active');
-            const closeModal = () => {
-                loanModal.classList.remove('active');
-                loanForm.reset();
-            };
+            const closeModal = () => loanModal.classList.remove('active');
 
             if (btnRegisterLoan) btnRegisterLoan.addEventListener('click', openModal);
             if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
@@ -334,61 +301,6 @@
 
             window.addEventListener('click', (e) => {
                 if (e.target === loanModal) closeModal();
-            });
-
-            loanForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                const borrowerName = document.getElementById('borrowerName').value.trim();
-                const borrowerRole = document.getElementById('borrowerRole').value;
-                const itemType = document.getElementById('itemType').value;
-                const itemTitle = document.getElementById('itemTitle').value.trim();
-
-                if (borrowerRole === 'Estudiante' && itemType === 'Carro') {
-                    alert('Regla del sistema: Los carros de computadoras solo pueden ser prestados a Profesores.');
-                    return;
-                }
-
-                const recentList = document.getElementById('recentList');
-                
-                if (recentList.querySelector('.estado-vacio')) {
-                    recentList.innerHTML = '';
-                }
-
-                const newItem = document.createElement('div');
-                newItem.className = 'recent-item';
-
-                newItem.innerHTML = `
-                    <div class="item-icon">
-                        <i class="fa-regular fa-bookmark"></i>
-                    </div>
-                    <div class="item-info">
-                        <span class="item-title">${itemTitle}</span>
-                        <span class="item-subtitle">${borrowerName} (${borrowerRole})</span>
-                    </div>
-                    <div class="item-status">
-                        <span class="status-badge badge-green">● En curso</span>
-                        <span class="item-date">Hoy</span>
-                    </div>
-                `;
-
-                recentList.prepend(newItem);
-
-                const countActive = document.getElementById('countActive');
-                const newCount = parseInt(countActive.textContent || 0) + 1;
-                countActive.textContent = newCount;
-
-                document.getElementById('totalMovements').textContent = newCount;
-                document.getElementById('loansTodayCount').textContent = newCount;
-                document.getElementById('loansProgressBar').style.width = '100%';
-
-                closeModal();
-            });
-
-            document.getElementById('btnLogout').addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.removeItem('currentUser');
-                window.location.href = '../index.html';
             });
         });
     </script>

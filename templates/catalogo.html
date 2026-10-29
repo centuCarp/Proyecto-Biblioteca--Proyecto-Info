@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Catálogo e inventario</title>
+    <!-- Tus enlaces de CSS e íconos -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+</head>
+<body>
+
+    <!-- 1. TODO TU CONTENIDO PRINCIPAL (Sidebar, tabla, métricas, etc.) -->
+    <div class="app-layout">
+        <aside class="sidebar">
+            <!-- ... tu barra lateral ... -->
+        </aside>
+
+        <main class="main-content">
+            <!-- ... tu tabla y botones ... -->
+        </main>
+    </div>
+
+
+    <!-- ========================================================== -->
+    <!-- 2. AQUÍ PEGÁS EL CÓDIGO DEL MODAL (Ventana flotante)       -->
+    <!-- ========================================================== -->
+    <div id="altaModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <div>
+                    <span style="font-size: 11px; font-weight: 700; color: #0284c7; letter-spacing: 1px;">NUEVO REGISTRO</span>
+                    <h2 style="font-size: 20px; color: #0f172a; margin-top: 4px;">Dar de alta un recurso</h2>
+                    <p style="font-size: 13px; color: #64748b;">Incorporá un elemento al inventario.</p>
+                </div>
+                <button id="btnCloseAltaModal" class="modal-close">&times;</button>
+            </div>
+
+            <form action="{{ url_for('dar_de_alta') }}" method="POST" class="modal-form">
+                <div class="form-group">
+                    <label for="tipo_recurso">Tipo de recurso</label>
+                    <select name="tipo_recurso" id="tipo_recurso" class="form-select" required>
+                        <option value="Libro" selected>Libro / ejemplar</option>
+                        <option value="Computadora">Computadora</option>
+                        <option value="Carro">Carro de computadoras</option>
+                        <option value="Elemento">Otro elemento</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="titulo">Título o nombre</label>
+                    <input type="text" name="titulo" id="titulo" placeholder="Nombre del recurso" required>
+                </div>
+
+                <div class="form-row" style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="codigo">Código</label>
+                        <input type="text" name="codigo" id="codigo" placeholder="EJ-00000" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="isbn_numero">ISBN / Número</label>
+                        <input type="text" name="isbn_numero" id="isbn_numero" placeholder="Identificador">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Autor o descripción</label>
+                    <input type="text" name="descripcion" id="descripcion" placeholder="Información adicional">
+                </div>
+
+                <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 15px;">
+                    <button type="button" id="btnCancelAltaModal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="background-color: #0284c7; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-check"></i> Guardar registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================================== -->
+    <!-- 3. AQUÍ PEGÁS EL SCRIPT PARA QUE ABRA Y CIERRE EL MODAL    -->
+    <!-- ========================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const altaModal = document.getElementById('altaModal');
+            const btnOpenAltaModal = document.getElementById('btnOpenAltaModal');
+            const btnCloseAltaModal = document.getElementById('btnCloseAltaModal');
+            const btnCancelAltaModal = document.getElementById('btnCancelAltaModal');
+
+            if (btnOpenAltaModal) {
+                btnOpenAltaModal.addEventListener('click', () => altaModal.classList.add('active'));
+            }
+            if (btnCloseAltaModal) {
+                btnCloseAltaModal.addEventListener('click', () => altaModal.classList.remove('active'));
+            }
+            if (btnCancelAltaModal) {
+                btnCancelAltaModal.addEventListener('click', () => altaModal.classList.remove('active'));
+            }
+            window.addEventListener('click', (e) => {
+                if (e.target === altaModal) altaModal.classList.remove('active');
+            });
+        });
+    </script>
+
+</body>
+</html>

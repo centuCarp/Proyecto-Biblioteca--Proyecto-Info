@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/prestamo.css') }}">
 </head>
 <body>
-
+ 
     <div class="app-layout">
 
         <!-- ================= BARRA LATERAL (SIDEBAR) ================= -->
@@ -84,10 +84,10 @@
                 </div>
 
                 <div class="user-profile">
-                    <div class="avatar" id="userAvatar">{{ username[:2] | upper }}</div>
+                    <div class="avatar" id="userAvatar">..</div>
                     <div class="user-info">
-                        <span class="user-name" id="userName">{{ username }}</span>
-                        <span class="user-role" id="userRole">{{ role }}</span>
+                        <span class="user-name" id="userName">{{ session.name }}</span>
+                        <span class="user-role" id="userRole">{{ session.role }}</span>
                     </div>
                     <i class="fa-solid fa-chevron-down dropdown-icon"></i>
                 </div>
@@ -101,7 +101,7 @@
                     <p>Registrá salidas, consultá estados y procesá devoluciones.</p>
                 </div>
                 
-                {% if role == 'Bibliotecario/a' %}
+                {% if session.role == 'Bibliotecario/a' %}
                 <button class="btn-primary" id="btnRegisterLoan">
                     <i class="fa-solid fa-plus"></i> Registrar préstamo
                 </button>
