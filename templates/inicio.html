@@ -51,12 +51,14 @@
                                 <span>Catálogo e inventario</span>
                             </a>
                         </li>
-                        <li class="nav-item" id="menuUsers">
-                            <a href="#">
-                                <i class="fa-regular fa-user nav-icon"></i>
-                                <span>Usuarios</span>
-                            </a>
-                        </li>
+                        {% if session.esBibliotecario %}
+                            <li class="nav-item" id="menuUsers">
+                                <a href="/">
+                                    <i class="fa-regular fa-user nav-icon"></i>
+                                    <span>Gestión de Usuarios</span>
+                                </a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </nav>
             </div>
@@ -81,8 +83,8 @@
                 <div class="user-profile">
                     <div class="avatar" id="userAvatar">--</div>
                     <div class="user-info">
-                        <span class="user-name" id="userName">Cargando...</span>
-                        <span class="user-role" id="userRole">...</span>
+                        <span class="user-name" id="userName">{{ session.name }}</span>
+                        <span class="user-role" id="userRole">Rol: {{ session.role }}</span>
                     </div>
                     <i class="fa-solid fa-chevron-down dropdown-icon"></i>
                 </div>
@@ -91,49 +93,52 @@
             <section class="welcome-section">
                 <div class="welcome-text">
                     <span class="date-badge" id="currentDate">FECHA ACTUAL</span>
-                    <h1 class="welcome-title">Bienvenido/a, <span id="welcomeName">Usuario</span></h1>
+                    <h1 class="welcome-title">Bienvenido/a, {{ session.name }}</h1>
                     <p class="welcome-subtitle" id="welcomeSubtitle">Resumen de la actividad general de la biblioteca.</p>
                 </div>
-                
-                <button class="btn-primary oculto" id="btnRegisterLoan">
-                    <i class="fa-solid fa-plus"></i> Registrar préstamo
-                </button>
+                {% if session.esBibliotecario %}
+                    <button class="btn-primary oculto" id="btnRegisterLoan">
+                        <i class="fa-solid fa-plus"></i> Registrar préstamo
+                    </button>
+                {% endif %}
             </section>
 
             <!-- GRILLA DE MÉTRICAS CON ID PARA REORGANIZACIÓN -->
             <section class="kpi-grid" id="kpiContainer">
-                <div class="kpi-card">
-                    <div class="kpi-icon icon-blue">
-                        <i class="fa-regular fa-pen-to-square"></i>
+                {% if session.esBibliotecario %}
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-blue">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label">Préstamos activos</span>
+                            <div class="kpi-value">0</div>
+                            <span class="kpi-subtext">Sin movimientos</span>
+                        </div>
                     </div>
-                    <div class="kpi-details">
-                        <span class="kpi-label">Préstamos activos</span>
-                        <div class="kpi-value" id="countActive">0</div>
-                        <span class="kpi-subtext">Sin movimientos</span>
-                    </div>
-                </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-icon icon-yellow">
-                        <i class="fa-regular fa-clock"></i>
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-yellow">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label">Vencen hoy</span>
+                            <div class="kpi-value" id="countDueToday">0</div>
+                            <span class="kpi-subtext">Al día</span>
+                        </div>
                     </div>
-                    <div class="kpi-details">
-                        <span class="kpi-label">Vencen hoy</span>
-                        <div class="kpi-value" id="countDueToday">0</div>
-                        <span class="kpi-subtext">Al día</span>
-                    </div>
-                </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-icon icon-red">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-red">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="kpi-details">
+                            <span class="kpi-label">Préstamos vencidos</span>
+                            <div class="kpi-value" id="countOverdue">0</div>
+                            <span class="kpi-subtext">Sin morosos</span>
+                        </div>
                     </div>
-                    <div class="kpi-details">
-                        <span class="kpi-label">Préstamos vencidos</span>
-                        <div class="kpi-value" id="countOverdue">0</div>
-                        <span class="kpi-subtext">Sin morosos</span>
-                    </div>
-                </div>
+                {% endif %}
 
                 <!-- TARJETA CON ID PARA CONTROLAR SU VISIBILIDAD -->
                 <div class="kpi-card" id="kpiCatalogCard">
@@ -142,7 +147,7 @@
                     </div>
                     <div class="kpi-details">
                         <span class="kpi-label">Ejemplares en catálogo</span>
-                        <div class="kpi-value">0</div>
+                        <div class="kpi-value">{{ libros_disponibles }}</div>
                         <span class="kpi-subtext">Inventario inicial</span>
                     </div>
                 </div>
@@ -209,62 +214,54 @@
     </div>
 
     <!-- MODAL DE PRÉSTAMO -->
-    <div id="loanModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h2>Registrar Nuevo Préstamo</h2>
-                <button id="closeModalBtn" class="modal-close">&times;</button>
-            </div>
-
-            <form id="loanForm" class="modal-form">
-                <div class="form-group">
-                    <label for="borrowerName">Nombre del Solicitante</label>
-                    <input type="text" id="borrowerName" placeholder="Ej. Lucía Martínez" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="borrowerRole">Tipo de Solicitante</label>
-                    <select id="borrowerRole" class="form-select" required>
-                        <option value="" disabled selected>Seleccioná el rol...</option>
-                        <option value="Estudiante">Estudiante</option>
-                        <option value="Profesor">Profesor/a</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="itemType">Tipo de Elemento</label>
-                    <select id="itemType" class="form-select" required>
-                        <option value="" disabled selected>Seleccioná qué se presta...</option>
-                        <option value="Libro">Libro / Ejemplar</option>
-                        <option value="Computadora">Computadora (Netbook)</option>
-                        <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
-                        <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="itemTitle">Título o Código del Elemento</label>
-                    <input type="text" id="itemTitle" placeholder="Ej. El principito / EJ-00482" required>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="startInput" id="startLabel">Fecha de inicio</label>
-                        <input type="date" id="startInput" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="endInput" id="endLabel">Fecha límite</label>
-                        <input type="date" id="endInput" class="form-control" required>
-                    </div>
-                </div>
-                
-                <div class="modal-actions">
-                    <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar Préstamo</button>
-                </div>
-            </form>
+    <form id="loanForm" class="modal-overlay" action="/inicio/registrar_prestamo" method="POST">
+        <div class="form-group">
+            <label for="borrowerName">Nombre del Solicitante</label>
+            <input type="text" id="borrowerName" name="borrowerName" placeholder="Ej. Lucía Martínez" required>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label for="borrowerRole">Tipo de Solicitante</label>
+            <select id="borrowerRole" name="borrowerRole" class="form-select" required>
+                <option value="" disabled selected>Seleccioná el rol...</option>
+                <option value="Estudiante">Estudiante</option>
+                <option value="Profesor">Profesor/a</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="itemType">Tipo de Elemento</label>
+            <select id="itemType" name="itemType" class="form-select" required>
+                <option value="" disabled selected>Seleccioná qué se presta...</option>
+                <option value="Libro">Libro / Ejemplar</option>
+                <option value="Computadora">Computadora (Netbook)</option>
+                <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
+                <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
+            </select>
+        </div>
+
+        # Hacer que el campo del título o código funcione como un buscador de elementos en el catálogo, mostrando sugerencias a medida que se escribe para facilitar la selección del elemento
+        <div class="form-group">
+            <label for="itemTitle">Título o Código del Elemento</label>
+            <input type="text" id="itemTitle" name="itemTitle" placeholder="Ej. El principito / EJ-00482" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="startInput">Fecha de inicio</label>
+                <input type="date" id="startInput" name="fechaInicio" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="endInput">Fecha límite</label>
+                <input type="date" id="endInput" name="fechaLimite" class="form-control" required>
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar Préstamo</button>
+        </div>
+    </form>
 
     <!-- SCRIPT JS CON CONTROL DE ROLES ACTUALIZADO -->
     <script>

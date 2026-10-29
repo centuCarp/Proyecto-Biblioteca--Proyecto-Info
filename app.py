@@ -8,24 +8,227 @@ app.secret_key = 'clave_secreta_para_sesiones' # Necesario para Flask Sessions
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'       # Cambiá por tu usuario de MySQL
 app.config['MYSQL_PASSWORD'] = ''   # Cambiá por tu contraseña de MySQL
-app.config['MYSQL_DB'] = 'biblioteca'  # Nombre de tu base de datos
+app.config['MYSQL_DB'] = 'BD_Biblioteca'  # Nombre de tu base de datos
 
-conexion = MySQL(app)
+mysql = MySQL(app)
 
 # Ruta de Login (Página principal)
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def login():
+    # Verificamos si el usuario envió el formulario mediante el método POST
+    if request.method == 'POST':
+        
+        # Capturamos los valores ingresados en los inputs del formulario HTML
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Abrimos un cursor para ejecutar consultas SQL en la base de datos
+        cursor = mysql.connection.cursor()
+        
+        # Ejecutamos una consulta segura utilizando %s para evitar inyecciones SQL
+        cursor.execute("SELECT * FROM Usuarios WHERE Email = %s AND Password = %s", (email, password))
+        
+        # Obtenemos un único registro (el primer usuario que coincida)
+        user = cursor.fetchone()
+        
+        # Cerramos el cursor para liberar memoria de la base de datos
+        cursor.close()
+        
+        # Validamos si la consulta encontró un usuario existente
+        if user:
+            # Creamos la sesión indicando que el usuario inició sesión correctamente
+            session['loggedin'] = True
+            session['id'] = user[0]           # Guardamos el ID del usuario (columna 0)
+            session['name'] = user[1]         # Guardamos el Nombre Completo (columna 1)
+            
+            # Extraemos los permisos de rol de las columnas booleanas de la BD
+            es_profesor = user[4]             # Columna esProfesor
+            es_bibliotecario = user[5]        # Columna esBibliotecario
+            
+            # Asignamos un texto de rol legible según los permisos de la base de datos
+            if es_bibliotecario:
+                session['role'] = 'Bibliotecario/a'
+            elif es_profesor:
+                session['role'] = 'Profesor/a'
+            else:
+                session['role'] = 'Estudiante'
+                
+            # Redirigimos al usuario autenticado hacia la vista de inicio
+            return redirect(url_for('inicio'))
+        else:
+            # Si el usuario no existe o la contraseña es incorrecta, definimos un mensaje de error
+            error = "Correo o contraseña incorrectos."
+            return render_template('index.html', error=error)
+            
+    # Si la petición es GET (recién entra a la página), simplemente renderizamos el index.html del login
     return render_template('index.html')
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        dni = request.form['dni']
+        email = request.form['email']
+        password = request.form['password']
+        tipo_usuario = request.form['tipo_usuario']
+        
+        # Definimos los valores booleanos según el rol seleccionado
+        es_profesor = True if tipo_usuario == 'profesor' else False
+        es_bibliotecario = True if tipo_usuario == 'bibliotecario' else False
+        
+        cursor = mysql.connection.cursor()
+        
+        # Verificamos si el correo o DNI ya existen
+        cursor.execute("SELECT * FROM Usuarios WHERE Email = %s OR DNI = %s", (email, dni))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            cursor.close()
+            return render_template('registro.html', error="El correo o DNI ya se encuentran registrados.")
+        
+        # Insertamos el nuevo usuario en la base de datos
+        cursor.execute(
+            "INSERT INTO Usuarios (Nombre_Completo, DNI, Email_Contacto, Password, esProfesor, esBibliotecario) VALUES (%s, %s, %s, %s, %s, %s)",
+            (nombre, dni, email, password, es_profesor, es_bibliotecario)
+        )
+        mysql.connection.commit()
+        cursor.close()
+        
+        # Redirigimos al login una vez creado exitosamente
+        return redirect(url_for('index'))
+        
+    return render_template('registro.html')
 
 # Ruta del Dashboard / Inicio
 @app.route('/inicio')
 def inicio():
-    return render_template('paginas/inicio.html')
+    # Verificamos que el usuario haya iniciado sesión antes de dejarlo entrar al inicio
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
 
-# Ruta de Préstamos
+    # Creamos el cursor para hacer las consultas a la base de datos
+    cursor = mysql.connection.cursor()
+
+    total_prestamos = 0
+    # Ejecutamos las consultas SQL de conteo (COUNT) para los préstamos y los libros
+    cursor.execute("SELECT COUNT(*) FROM Prestamos_Libros")
+    total_prestamos += cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM Prestamos_Carros")
+    total_prestamos += cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM Prestamos_Computadoras")
+    total_prestamos += cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM Prestamos_Elementos")
+    total_prestamos += cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(E.ID) FROM Ejemplares E INNER JOIN Prestamos_Libros PL ON E.ID = PL.ID.Ejemplar WHERE E.ID NOT IN (SELECT ID_Ejemplar FROM Prestamos_Libros WHERE Fecha_Devolucion IS NULL)")
+    libros_disponibles = cursor.fetchone()[0]
+    
+    # Cerramos el cursor de la base de datos
+    cursor.close()
+
+    # Renderizamos la plantilla inicio.html enviándole las variables con las métricas reales
+    return render_template('inicio.html', 
+                           total_prestamos=total_prestamos, 
+                           libros_disponibles=libros_disponibles)
+
+@app.route('/inicio/registrar_prestamo', methods=['POST'])
+def registrar_prestamo():
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+
+    # Capturamos los datos enviados desde el formulario HTML
+    nombre_solicitante = request.form['borrowerName']
+    tipo_solicitante = request.form['borrowerRole']
+    tipo_elemento = request.form['itemType']
+    titulo_elemento = request.form['itemTitle']
+    fecha_inicio = request.form['fechaInicio']
+    fecha_limite = request.form['fechaLimite']
+
+    # Guardamos en la base de datos
+    cursor = mysql.connection.cursor()
+
+    #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Hacer que el insert sea dinámico según el tipo de elemento prestado y cambiar los campos según corresponda. Acá se asume que hay una tabla unificada de préstamos para simplificar el ejemplo.
+    cursor.execute("""
+        INSERT INTO prestamos (nombre_solicitante, tipo_solicitante, tipo_elemento, titulo_elemento, fecha_inicio, fecha_limite) 
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (nombre_solicitante, tipo_solicitante, tipo_elemento, titulo_elemento, fecha_inicio, fecha_limite))
+    
+    mysql.connection.commit()
+    cursor.close()
+
+    # Redirigimos de vuelta al inicio para que se actualice el contador de préstamos automáticamente
+    return redirect(url_for('inicio'))
+
+
+
+# Ruta de Préstamos: SELECT dinámico unificado de todas las tablas de préstamos
 @app.route('/prestamos')
 def prestamos():
-    return render_template('paginas/prestamo.html')
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+        
+    cursor = mysql.connection.cursor()
 
+    # Consulta unificada para traer todos los préstamos activos conectando con la tabla Usuarios
+    cursor.execute("""
+        -- 1. Préstamos de Libros
+        SELECT p.ID, 'Libro' as Tipo, l.Titulo as Elemento, 
+               u.Nombre_Completo as Solicitante,
+               CASE WHEN u.esProfesor = 1 THEN 'Profesor/a' ELSE 'Estudiante' END as Rol,
+               p.Fecha_Limite as FechaLimite, 'En curso' as Estado
+        FROM Prestamos_Libros p
+        JOIN Ejemplares e ON p.ID_Ejemplar = e.ID
+        JOIN Libros l ON e.ISBN_Libro = l.ISBN
+        JOIN Usuarios u ON p.ID_Usuario = u.ID
+        
+        UNION
+        
+        -- 2. Préstamos de Computadoras
+        SELECT p.ID, 'Computadora' as Tipo, CONCAT('Netbook - ID: ', p.Numero_Computadora) as Elemento,
+               u.Nombre_Completo as Solicitante,
+               CASE WHEN u.esProfesor = 1 THEN 'Profesor/a' ELSE 'Estudiante' END as Rol,
+               p.Hora_Limite as FechaLimite, 'En curso' as Estado
+        FROM Prestamos_Computadoras p
+        JOIN Usuarios u ON p.ID_Usuario = u.ID
+        
+        UNION
+        
+        -- 3. Préstamos de Carros (Hecho por profesores)
+        SELECT p.ID, 'Carro' as Tipo, CONCAT('Carro ID: ', p.Numero_Carro) as Elemento,
+               u.Nombre_Completo as Solicitante, 'Profesor/a' as Rol,
+               p.Hora_Limite as FechaLimite, 'En curso' as Estado
+        FROM Prestamos_Carros p
+        JOIN Usuarios u ON p.ID_Profesor = u.ID
+        
+        UNION
+        
+        -- 4. Préstamos de Elementos
+        SELECT p.ID, 'Otros' as Tipo, p.Codigo_Elementos as Elemento,
+               u.Nombre_Completo as Solicitante,
+               CASE WHEN u.esProfesor = 1 THEN 'Profesor/a' ELSE 'Estudiante' END as Rol,
+               p.Hora_Limite as FechaLimite, 'En curso' as Estado
+        FROM Prestamos_Elementos p
+        JOIN Usuarios u ON p.ID_Usuario = u.ID
+    """)
+    
+    data = cursor.fetchall()
+    cursor.close()
+    
+    # Transformamos los datos en una lista de diccionarios para enviarla al HTML de préstamos
+    lista_prestamos = []
+    for row in data:
+        lista_prestamos.append({
+            'id': row[0],
+            'tipo': row[1],
+            'elemento': row[2],
+            'solicitante': row[3],
+            'rol': row[4],
+            'fecha_limite': str(row[5]),
+            'estado': row[6]
+        })
+        
+    return render_template('prestamo.html', prestamos=lista_prestamos)
+    
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Préstamos</title>
+    
+    <!-- Tipografía Inter e íconos FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Hojas de estilos -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/prestamo.css') }}">
+</head>
+<body>
+
+    <div class="app-layout">
+
+        <!-- ================= BARRA LATERAL (SIDEBAR) ================= -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <div class="logo-badge">36</div>
+                    <div class="brand-titles">
+                        <h1>Biblioteca Escolar</h1>
+                        <p>E.T. N° 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <span class="nav-section-title">MENÚ PRINCIPAL</span>
+                    <ul>
+                        <li class="nav-item">
+                           <a href="{{ url_for('inicio') }}">
+                                <i class="fa-solid fa-house nav-icon"></i>
+                                <span>Inicio</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="{{ url_for('prestamos') }}">
+                                <i class="fa-regular fa-square-check nav-icon"></i>
+                                <span>Préstamos</span>
+                                {% if prestamos|length > 0 %}
+                                <span class="nav-badge" id="sidebarBadge">{{ prestamos|length }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#">
+                                <i class="fa-regular fa-bookmark nav-icon"></i>
+                                <span>Catálogo e inventario</span>
+                            </a>
+                        </li>
+                        {% if role == 'Bibliotecario/a' %}
+                        <li class="nav-item" id="menuUsers">
+                            <a href="#">
+                                <i class="fa-regular fa-user nav-icon"></i>
+                                <span>Usuarios</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <a href="{{ url_for('logout') }}" id="btnLogout" class="logout-button">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= CONTENIDO PRINCIPAL ================= -->
+        <main class="main-content">
+
+            <header class="top-bar">
+                <div class="breadcrumb">
+                    <span class="system-title">SISTEMA DE GESTIÓN</span>
+                    <h2 class="page-title">Préstamos</h2>
+                </div>
+
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">{{ username[:2] | upper }}</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">{{ username }}</span>
+                        <span class="user-role" id="userRole">{{ role }}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                </div>
+            </header>
+
+            <!-- Encabezado de la página -->
+            <section class="page-heading">
+                <div class="heading-text">
+                    <span class="kicker">CIRCULACIÓN</span>
+                    <h1>Préstamos</h1>
+                    <p>Registrá salidas, consultá estados y procesá devoluciones.</p>
+                </div>
+                
+                {% if role == 'Bibliotecario/a' %}
+                <button class="btn-primary" id="btnRegisterLoan">
+                    <i class="fa-solid fa-plus"></i> Registrar préstamo
+                </button>
+                {% endif %}
+            </section>
+
+            <!-- Pestañas de filtrado dinámico -->
+            <div class="tabs">
+                <div class="tab active" data-status="En curso">Activos <span class="tab-badge" id="tabActiveCount">{{ prestamos|length }}</span></div>
+                <div class="tab" data-status="Finalizado">Finalizados <span class="tab-badge" id="tabFinishedCount">0</span></div>
+                <div class="tab" data-status="Vencido">Vencidos <span class="tab-badge red" id="tabOverdueCount">0</span></div>
+            </div>
+
+            <!-- Contenedor de la tabla -->
+            <div class="table-container">
+                
+                <div class="filters-bar">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por usuario, elemento o código...">
+                    </div>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="Todos">Todos los tipos</option>
+                        <option value="Libro">Libros</option>
+                        <option value="Computadora">Computadoras</option>
+                        <option value="Carro">Carros</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Elemento</th>
+                            <th>Prestado A</th>
+                            <th>Fecha / Hora Límite</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prestamosTableBody">
+                        {% if prestamos %}
+                            {% for p in prestamos %}
+                            <tr>
+                                <td><strong>{{ p.elemento }}</strong></td>
+                                <td>{{ p.solicitante }} ({{ p.rol }})</td>
+                                <td>{{ p.fecha_limite }}</td>
+                                <td><span class="status-badge badge-green">● {{ p.estado }}</span></td>
+                                <td style="text-align: right;">
+                                    {% if role == 'Bibliotecario/a' and p.estado == 'En curso' %}
+                                    <button class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">Finalizar</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px 10px;">
+                                    <i class="fa-regular fa-folder-open" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                                    No hay préstamos registrados actualmente en la base de datos.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL PARA REGISTRAR PRÉSTAMO -->
+    <div id="loanModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Registrar Nuevo Préstamo</h2>
+                <button id="closeModalBtn" class="modal-close">&times;</button>
+            </div>
+
+            <form id="loanForm" class="modal-form" method="POST" action="/prestamos">
+                <div class="form-group">
+                    <label for="borrowerName">Nombre del Solicitante</label>
+                    <input type="text" id="borrowerName" name="solicitante" placeholder="Ej. Lucía Martínez" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrowerRole">Tipo de Solicitante</label>
+                    <select id="borrowerRole" name="rol" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná el rol...</option>
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor/a</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemType">Tipo de Elemento</label>
+                    <select id="itemType" name="tipo_elemento" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná qué se presta...</option>
+                        <option value="Libro">Libro / Ejemplar</option>
+                        <option value="Computadora">Computadora (Netbook)</option>
+                        <option value="Carro">Carro de Computadoras (Solo Profesor/a)</option>
+                        <option value="Otros">Otros (Calculadora, Tablero, etc.)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemTitle">Título o Código del Elemento</label>
+                    <input type="text" id="itemTitle" name="elemento" placeholder="Ej. El principito / EJ-00482" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Préstamo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT EXCLUSIVO PARA INTERACCIÓN DEL MODAL -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loanModal = document.getElementById('loanModal');
+            const btnRegisterLoan = document.getElementById('btnRegisterLoan');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+
+            const openModal = () => loanModal.classList.add('active');
+            const closeModal = () => loanModal.classList.remove('active');
+
+            if (btnRegisterLoan) btnRegisterLoan.addEventListener('click', openModal);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+
+            window.addEventListener('click', (e) => {
+                if (e.target === loanModal) closeModal();
+            });
+        });
+    </script>
+
+</body>
+</html>

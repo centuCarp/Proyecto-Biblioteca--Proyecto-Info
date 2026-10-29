@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Escolar - Registro de Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <main class="form-panel" style="width: 100%; max-width: 500px; margin: auto;">
+            <div class="form-wrapper">
+                <span class="form-kicker">NUEVA CUENTA</span>
+                <h1 class="form-title">Registrarse</h1>
+                <p class="form-subtitle">Completá tus datos para crear tu usuario.</p>
+
+                <!-- Formulario de Registro apuntando a la ruta /registro -->
+                <form class="login-form" method="POST" action="{{ url_for('registro') }}">
+                    
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo</label>
+                        <input type="text" id="nombre" name="nombre" placeholder="Ej. Juan Pérez" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dni">DNI</label>
+                        <input type="text" id="dni" name="dni" placeholder="Ej. 12345678" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Correo institucional</label>
+                        <input type="email" id="email" name="email" placeholder="ejemplo@et36.edu.ar" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo_usuario">Tipo de usuario</label>
+                        <select id="tipo_usuario" name="tipo_usuario" class="form-select" required>
+                            <option value="" disabled selected>Seleccioná tu rol...</option>
+                            <option value="estudiante">Estudiante</option>
+                            <option value="profesor">Profesor/a</option>
+                            <option value="bibliotecario">Bibliotecario/a</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        Registrarse <span>&rarr;</span>
+                    </button>
+                </form>
+
+                <p style="text-align: center; margin-top: 15px;">
+                    ¿Ya tenés una cuenta? <a href="{{ url_for('login') }}">Iniciá sesión aquí</a>
+                </p>
+
+                {% if error %}
+                <div class="alert-box" style="background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; margin-top: 20px;">
+                    <p><strong>Error:</strong> {{ error }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>
