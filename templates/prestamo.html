@@ -49,18 +49,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#">
+                            <a href="{{ url_for('catalogo') }}">
                                 <i class="fa-regular fa-bookmark nav-icon"></i>
                                 <span>Catálogo e inventario</span>
                             </a>
                         </li>
-                        {% if role == 'Bibliotecario/a' %}
-                        <li class="nav-item" id="menuUsers">
-                            <a href="#">
-                                <i class="fa-regular fa-user nav-icon"></i>
-                                <span>Usuarios</span>
-                            </a>
-                        </li>
+                        {% if session.role == "Bibliotecario/a" %}
+                            <li class="nav-item" id="menuUsers">
+                                <a href="{{ url_for('usuarios') }}">
+                                    <i class="fa-regular fa-user nav-icon"></i>
+                                    <span>Gestión de Usuarios</span>
+                                </a>
+                            </li>
                         {% endif %}
                     </ul>
                 </nav>

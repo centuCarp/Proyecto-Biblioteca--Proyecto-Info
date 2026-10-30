@@ -214,7 +214,7 @@
         </main>
     </div>
 
-    <!-- MODAL DE PRÉSTAMO (Estructura corregida con modal-overlay y modal-card) -->
+    <!-- MODAL DE PRÉSTAMO -->
     <div id="loanModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -222,7 +222,7 @@
                 <button id="closeModalBtn" class="modal-close">&times;</button>
             </div>
 
-            <form id="loanForm" class="modal-form" action="/inicio/registrar_prestamo" method="POST">
+            <form id="loanForm" class="modal-form" action="/inicio#registrar_prestamo" method="POST">
                 
                 <div class="form-group">
                     <label for="rolSolicitante">Tipo de Solicitante</label>
@@ -303,6 +303,23 @@
                 if (e.target === loanModal) closeModal();
             });
         });
+        function verificarTipoElemento() {
+            const tipo = document.getElementById('itemType').value;
+            const seccionCompu = document.getElementById('seccionComputadora');
+            const labelLimite = document.getElementById('labelLimite');
+            const limitInput = document.getElementById('limitInput');
+
+            if (tipo === 'Computadora' || tipo === 'Carro') {
+                if(seccionCompu) seccionCompu.style.display = 'block';
+                if(labelLimite) labelLimite.textContent = "Hora límite";
+                if(limitInput) limitInput.type = "time";
+            } else {
+                if(seccionCompu) seccionCompu.style.display = 'none';
+                if(labelLimite) labelLimite.textContent = "Fecha límite";
+                if(limitInput) limitInput.type = "date";
+            }
+        }
+        
     </script>
 
 </body>

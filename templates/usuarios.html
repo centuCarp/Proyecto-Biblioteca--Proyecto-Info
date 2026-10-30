@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Biblioteca Escolar</title>
+    <!-- Importamos FontAwesome para que los iconos sean idénticos a los de Préstamos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Sidebar idéntico -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <div class="brand-logo">36</div>
+                    <div class="brand-text">
+                        <h2>Biblioteca Escolar</h2>
+                        <p>E.T. Nº 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <div class="menu-category">MENÚ PRINCIPAL</div>
+                <ul class="nav-links">
+                    <li>
+                        <a href="{{ url_for('login') }}">
+                            <i class="fa-solid fa-house"></i> Inicio
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('prestamos') }}">
+                            <i class="fa-solid fa-square-check"></i> Préstamos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('catalogo') }}">
+                            <i class="fa-solid fa-bookmark"></i> Catálogo e inventario
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('usuarios') }}" class="active">
+                            <i class="fa-solid fa-user"></i> Gestión de Usuarios
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout')  }}" class="logout-link">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Header superior idéntico -->
+            <header class="top-header">
+                <div class="header-titles">
+                    <span class="breadcrumb-sub">SISTEMA DE GESTIÓN</span>
+                    <h1>Gestión de Usuarios</h1>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">..</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">{{ session.name }}</span>
+                        <span class="user-role" id="userRole">{{ session.role }}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                </div>
+            </header>
+
+            <!-- Cuerpo de la vista -->
+            <div class="content-body">
+                <div class="sub-category">ADMINISTRACIÓN</div>
+                <div class="page-title-row">
+                    <div>
+                        <h2>Usuarios</h2>
+                       
+                    </div>
+                    <button class="btn-primary">
+                        <i class="fa-solid fa-plus"></i> Registrar usuario
+                    </button>
+                </div>
+
+                <!-- Pestañas de filtro por rol (Estilo idéntico a los contadores de Préstamos) -->
+                <div class="tabs-bar">
+                    <a href="#" class="tab-item active">Todos <span class="badge-count">0</span></a>
+                    <a href="#" class="tab-item">Bibliotecarios <span class="badge-count">0</span></a>
+                    <a href="#" class="tab-item">Profesores <span class="badge-count">0</span></a>
+                    <a href="#" class="tab-item">Estudiantes <span class="badge-count">0</span></a>
+                </div>
+                <div class="tab-line"></div>
+
+                <!-- Tarjeta contenedora de la tabla -->
+                <div class="card-container">
+                    <!-- Barra de búsqueda e input -->
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" placeholder="Buscar por usuario, DNI o correo...">
+                        </div>
+                        <div class="filter-box">
+                            <select>
+                                <option>Todos los roles</option>
+                                <option>Bibliotecario</option>
+                                <option>Profesor</option>
+                                <option>Estudiante</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de datos -->
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>NOMBRE COMPLETO</th>
+                                    <th>DNI</th>
+                                    <th>EMAIL</th>
+                                    <th>ROL</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if usuarios %}
+                                    {% for usuario in usuarios %}
+                                    <tr>
+                                        <td>{{ usuario.ID }}</td>
+                                        <td><strong>{{ usuario.Nombre_Completo }}</strong></td>
+                                        <td>{{ usuario.DNI }}</td>
+                                        <td>{{ usuario.Email }}</td>
+                                        <td>
+                                            {% if usuario.esBibliotecario %}
+                                                <span class="role-badge admin">Bibliotecario</span>
+                                            {% elif usuario.esProfesor %}
+                                                <span class="role-badge profesor">Profesor</span>
+                                            {% else %}
+                                                <span class="role-badge alumno">Estudiante</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn-action" title="Editar usuario"><i class="fa-solid fa-pen"></i></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <div class="empty-icon-box">
+                                                <i class="fa-solid fa-folder-open"></i>
+                                            </div>
+                                            <p>No hay usuarios registrados actualmente en la base de datos.</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

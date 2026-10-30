@@ -142,7 +142,7 @@ def inicio():
 
 
 
-@app.route('/inicio/registrar_prestamo', methods=['POST'])
+@app.route('/inicio#registrar_prestamo', methods=['POST'])
 def registrar_prestamo():
     # Verificamos que el usuario tenga sesión activa
     if not session.get('loggedin'):
@@ -168,12 +168,12 @@ def registrar_prestamo():
             # Usamos los nombres de columnas correctos de tus tablas de préstamos
             if tipo_prestamo == 'Computadora':
                 cursor.execute(
-                    "INSERT INTO Prestamos_Computadoras (ID_Usuario, Numero_Computadora, Hora_Inicio, Hora_Limite) VALUES (%s, %s, NOW(), %s,)",
+                    "INSERT INTO Prestamos_Computadoras (ID_Usuario, Numero_Computadora, Hora_Inicio, Hora_Limite) VALUES (%s, %s, NOW(), %s)",
                     (id_usuario, item_title, fecha_limite)
                 )
             elif tipo_prestamo == 'Carro':
                 cursor.execute(
-                    "INSERT INTO Prestamos_Carros (ID_Profesor, Numero_Carro, Hora_Inicio, Hora_Limite, Estado) VALUES (%s, %s, NOW(), %s,)",
+                    "INSERT INTO Prestamos_Carros (ID_Profesor, Numero_Carro, Hora_Inicio, Hora_Limite, Estado) VALUES (%s, %s, NOW(), %s)",
                     (id_usuario, item_title, fecha_limite)
                 )
                 
@@ -255,88 +255,67 @@ def prestamos():
 
 
 # Ruta de Catálogo e Inventario corregida
-@app.route('/catalogo')
+@app.route('/catalogo', methods=['GET', 'POST'])
 def catalogo():
-    if not session.get('loggedin'):
-        return redirect(url_for('login'))
-        
-    cursor = mysql.connection.cursor()
-    
-    # Métricas (KPIs) superiores
-    cursor.execute("SELECT COUNT(*) FROM Ejemplares")
-    total_ejemplares = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM Computadoras")
-    total_computadoras = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM Carros")
-    total_carros = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM Elementos")
-    total_elementos = cursor.fetchone()[0]
-    
-    # Consulta unificada corregida (sin la columna C.ID_Carro que causaba el error)
-    cursor.execute("""
-        SELECT L.Titulo as Recurso, CONCAT('ISBN: ', L.ISBN) as Detalle, 'Libro' as Tipo, CONCAT('EJ-', E.ID) as Codigo, 'Disponible' as Disponibilidad
-        FROM Ejemplares E
-        JOIN Libros L ON E.ISBN_Libro = L.ISBN
-        UNION ALL
-        SELECT CONCAT('Computadora ', C.Numero) as Recurso, 'Equipo operativo' as Detalle, 'Computadora' as Tipo, CONCAT('PC-', C.ID) as Codigo, 'Disponible' as Disponibilidad
-        FROM Computadoras C
-        UNION ALL
-        SELECT CONCAT('Carro de computadoras ', CA.Numero) as Recurso, CONCAT(CA.Cantidad_Computadora, ' equipos') as Detalle, 'Carro' as Tipo, CONCAT('CA-', CA.ID) as Codigo, 'Disponible' as Disponibilidad
-        FROM Carros CA
-        UNION ALL
-        SELECT E.Tipo as Recurso, 'Elemento institucional' as Detalle, 'Elemento' as Tipo, E.Codigo as Codigo, 'Disponible' as Disponibilidad
-        FROM Elementos E
-    """)
-    data = cursor.fetchall()
-    cursor.close()
-    
-    recursos = []
-    for row in data:
-        recursos.append({
-            'recurso': row[0],
-            'detalle': row[1],
-            'tipo': row[2],
-            'codigo': row[3],
-            'disponibilidad': row[4]
-        })
-        
-    return render_template('catalogo.html', 
-                           total_ejemplares=total_ejemplares,
-                           total_computadoras=total_computadoras,
-                           total_carros=total_carros,
-                           total_elementos=total_elementos,
-                           recursos=recursos)
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
 
-# Ruta para procesar el formulario de Dar de Alta (INSERT INTO)
-@app.route('/dar_de_alta', methods=['POST'])
-def dar_de_alta():
-    if not session.get('loggedin'):
-        return redirect(url_for('login'))
-        
-    tipo = request.form.get('tipo_recurso')
-    titulo = request.form.get('titulo')
-    codigo = request.form.get('codigo')
-    isbn_numero = request.form.get('isbn_numero')
-    descripcion = request.form.get('descripcion')
-    
-    cursor = mysql.connection.cursor()
-    
-    if tipo == 'Libro':
-        cursor.execute("INSERT INTO Libros (ISBN, Titulo) VALUES (%s, %s) ON DUPLICATE KEY UPDATE Titulo=%s", (isbn_numero, titulo, titulo))
-        cursor.execute("INSERT INTO Ejemplares (ISBN_Libro) VALUES (%s)", (isbn_numero,))
-    elif tipo == 'Computadora':
-        cursor.execute("INSERT INTO Computadoras (Numero, Estado) VALUES (%s, 'Operativo')", (codigo,))
-    elif tipo == 'Carro':
-        cursor.execute("INSERT INTO Carros (Numero, Cantidad_Computadora) VALUES (%s, %s)", (codigo, isbn_numero or 10))
-    elif tipo == 'Elemento':
-        cursor.execute("INSERT INTO Elementos (Codigo, Tipo) VALUES (%s, %s)", (codigo, titulo))
-        
-    mysql.connection.commit()
+    # Si el usuario envía el formulario modal (método POST)
+    if request.method == 'POST':
+        numero_compu = request.form['numero']
+        numero_carro = request.form['numero_carro']
+        estado = request.form['estado']
+
+        try:
+            cursor.execute(
+                "INSERT INTO Computadoras (Numero, Numero_Carro, Estado) VALUES (%s, %s, %s)",
+                (numero_compu, numero_carro, estado)
+            )
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al registrar la computadora: {e}")
+        finally:
+            cursor.close()
+            conexion.close()
+
+        # Recarga la misma página ya con el registro guardado
+        return redirect(url_for('catalogo'))
+
+    # Si es método GET: Obtenemos las computadoras y los carros para el selector del modal
+    cursor.execute("""
+        SELECT Numero, Numero_Carro, Estado
+        FROM Computadoras
+    """)
+    computadoras = cursor.fetchall()
+
+    cursor.execute("SELECT Numero FROM Carros")
+    carros = cursor.fetchall()
+
     cursor.close()
-    return redirect(url_for('catalogo'))
+    conexion.close()
+    
+    return render_template('catalogo.html', computadoras=computadoras, carros=carros)
+
+@app.route('/usuarios')
+def usuarios():
+    lista_usuarios = []
+    try:
+        # 1. Abrir conexión y cursor (con dictionary=True para acceder fácilmente por nombre de columna)
+        conexion = obtener_conexion()
+        cursor = conexion.cursor(dictionary=True)
+        
+        # 2. Consultar la tabla Usuarios
+        cursor.execute("SELECT ID, Nombre_Completo, DNI, Email, esProfesor, esBibliotecario FROM Usuarios")
+        lista_usuarios = cursor.fetchall()
+        
+        # 3. Cerrar cursor y conexión
+        cursor.close()
+        conexion.close()
+    except Exception as e:
+        print(f"Error al conectar con la base de datos: {e}")
+    
+    # 4. Renderizar la plantilla enviándole los datos reales
+    return render_template('usuarios.html', usuarios=lista_usuarios)
     
 if __name__ == '__main__':
     app.run(debug=True)

@@ -3,106 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biblioteca Escolar - Catálogo e inventario</title>
-    <!-- Tus enlaces de CSS e íconos -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+    <title>Catálogo e Inventario - Biblioteca Escolar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
 </head>
 <body>
 
-    <!-- 1. TODO TU CONTENIDO PRINCIPAL (Sidebar, tabla, métricas, etc.) -->
-    <div class="app-layout">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <!-- ... tu barra lateral ... -->
+            <div>
+                <div class="sidebar-brand">
+                    <div class="brand-logo">36</div>
+                    <div class="brand-text">
+                        <h2>Biblioteca Escolar</h2>
+                        <p>E.T. Nº 36 · Almirante G. Brown</p>
+                    </div>
+                </div>
+
+                <div class="menu-category">MENÚ PRINCIPAL</div>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Inicio</a></li>
+                    <li><a href="{{ url_for('prestamos') }}"><i class="fa-solid fa-square-check"></i> Préstamos</a></li>
+                    <li><a href="{{ url_for('catalogo') }}" class="active"><i class="fa-solid fa-laptop"></i> Catálogo e inventario</a></li>
+                    <li><a href="{{ url_for('usuarios') }}"><i class="fa-solid fa-user"></i> Gestión de Usuarios</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+            </div>
         </aside>
 
+        <!-- Contenido principal -->
         <main class="main-content">
-            <!-- ... tu tabla y botones ... -->
+            <header class="top-header">
+                <div class="header-titles">
+                    <span class="breadcrumb-sub">SISTEMA DE GESTIÓN</span>
+                    <h1>Catálogo e Inventario</h1>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-ellipsis"></i></div>
+                    <div class="user-info">
+                        <span class="user-name">juancito</span>
+                        <span class="user-role">Bibliotecario/a</span>
+                        <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <div class="sub-category">INVENTARIO</div>
+                <div class="page-title-row">
+                    <div>
+                        <h2>Computadoras y Carros</h2>
+                        <p class="section-description">Controlá el estado de los equipos informáticos y su asignación en los carros de netbooks.</p>
+                    </div>
+                    <!-- Botón que abre el Modal -->
+                    <button type="button" class="btn-primary" onclick="abrirModal()">
+                        <i class="fa-solid fa-plus"></i> Registrar equipo
+                    </button>
+                </div>
+
+                <!-- Pestañas de filtro -->
+                <div class="tabs-bar">
+                    <a href="#" class="tab-item active">Computadoras <span class="badge-count">{{ computadoras|length }}</span></a>
+                    <a href="#" class="tab-item">Carros <span class="badge-count">0</span></a>
+                </div>
+                <div class="tab-line"></div>
+
+                <!-- Tabla de computadoras -->
+                <div class="card-container">
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" placeholder="Buscar por número de computadora o estado...">
+                        </div>
+                        <div class="filter-box">
+                            <select>
+                                <option>Todos los estados</option>
+                                <option>Disponible</option>
+                                <option>En reparación</option>
+                                <option>Prestada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Nº COMPUTADORA</th>
+                                    <th>CARRO ASIGNADO</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if computadoras %}
+                                    {% for compu in computadoras %}
+                                    <tr>
+                                        <td><strong>Nº {{ compu.Numero }}</strong></td>
+                                        <td>Carro {{ compu.Numero_Carro }}</td>
+                                        <td>
+                                            <span class="role-badge profesor">{{ compu.Estado }}</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn-action" title="Editar equipo"><i class="fa-solid fa-pen"></i></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="empty-state">
+                                            <div class="empty-icon-box">
+                                                <i class="fa-solid fa-laptop"></i>
+                                            </div>
+                                            <p>No hay computadoras registradas actualmente en la base de datos.</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-
-    <!-- ========================================================== -->
-    <!-- 2. AQUÍ PEGÁS EL CÓDIGO DEL MODAL (Ventana flotante)       -->
-    <!-- ========================================================== -->
-    <div id="altaModal" class="modal-overlay">
-        <div class="modal-card" style="max-width: 580px;">
+    <!-- VENTANA MODAL (Oculta por defecto) -->
+    <div id="modalRegistro" class="modal-overlay">
+        <div class="modal-content">
             <div class="modal-header">
-                <div>
-                    <span style="font-size: 11px; font-weight: 700; color: #0284c7; letter-spacing: 1px;">NUEVO REGISTRO</span>
-                    <h2 style="font-size: 20px; color: #0f172a; margin-top: 4px;">Dar de alta un recurso</h2>
-                    <p style="font-size: 13px; color: #64748b;">Incorporá un elemento al inventario.</p>
-                </div>
-                <button id="btnCloseAltaModal" class="modal-close">&times;</button>
+                <h3>Registrar Nueva Computadora</h3>
+                <button type="button" class="modal-close" onclick="cerrarModal()">&times;</button>
             </div>
+            
+            <!-- El formulario envía los datos a la misma ruta /catalogo por POST -->
+            <form action="{{ url_for('catalogo') }}" method="POST">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Número de Computadora:</label>
+                    <input type="number" name="numero" required placeholder="Ej. 105" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                </div>
 
-            <form action="{{ url_for('dar_de_alta') }}" method="POST" class="modal-form">
-                <div class="form-group">
-                    <label for="tipo_recurso">Tipo de recurso</label>
-                    <select name="tipo_recurso" id="tipo_recurso" class="form-select" required>
-                        <option value="Libro" selected>Libro / ejemplar</option>
-                        <option value="Computadora">Computadora</option>
-                        <option value="Carro">Carro de computadoras</option>
-                        <option value="Elemento">Otro elemento</option>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Carro Asignado:</label>
+                    <select name="numero_carro" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                        <option value="">Seleccione un carro...</option>
+                        {% for carro in carros %}
+                            <option value="{{ carro.Numero }}">Carro Nº {{ carro.Numero }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="titulo">Título o nombre</label>
-                    <input type="text" name="titulo" id="titulo" placeholder="Nombre del recurso" required>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Estado inicial:</label>
+                    <select name="estado" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                        <option value="Disponible">Disponible</option>
+                        <option value="En reparación">En reparación</option>
+                        <option value="Prestada">Prestada</option>
+                    </select>
                 </div>
 
-                <div class="form-row" style="display: flex; gap: 16px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label for="codigo">Código</label>
-                        <input type="text" name="codigo" id="codigo" placeholder="EJ-00000" required>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label for="isbn_numero">ISBN / Número</label>
-                        <input type="text" name="isbn_numero" id="isbn_numero" placeholder="Identificador">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="descripcion">Autor o descripción</label>
-                    <input type="text" name="descripcion" id="descripcion" placeholder="Información adicional">
-                </div>
-
-                <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 15px;">
-                    <button type="button" id="btnCancelAltaModal" class="btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="background-color: #0284c7; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-check"></i> Guardar registro
-                    </button>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" onclick="cerrarModal()" style="padding: 10px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; font-weight: 600;">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Computadora</button>
                 </div>
             </form>
         </div>
     </div>
 
-
-    <!-- ========================================================== -->
-    <!-- 3. AQUÍ PEGÁS EL SCRIPT PARA QUE ABRA Y CIERRE EL MODAL    -->
-    <!-- ========================================================== -->
+    <!-- Script JavaScript para controlar el modal -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const altaModal = document.getElementById('altaModal');
-            const btnOpenAltaModal = document.getElementById('btnOpenAltaModal');
-            const btnCloseAltaModal = document.getElementById('btnCloseAltaModal');
-            const btnCancelAltaModal = document.getElementById('btnCancelAltaModal');
-
-            if (btnOpenAltaModal) {
-                btnOpenAltaModal.addEventListener('click', () => altaModal.classList.add('active'));
-            }
-            if (btnCloseAltaModal) {
-                btnCloseAltaModal.addEventListener('click', () => altaModal.classList.remove('active'));
-            }
-            if (btnCancelAltaModal) {
-                btnCancelAltaModal.addEventListener('click', () => altaModal.classList.remove('active'));
-            }
-            window.addEventListener('click', (e) => {
-                if (e.target === altaModal) altaModal.classList.remove('active');
-            });
-        });
+        function abrirModal() {
+            document.getElementById('modalRegistro').style.display = 'flex';
+        }
+        function cerrarModal() {
+            document.getElementById('modalRegistro').style.display = 'none';
+        }
     </script>
-
 </body>
 </html>
