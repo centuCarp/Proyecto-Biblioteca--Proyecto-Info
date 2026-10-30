@@ -5,33 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo e Inventario - Biblioteca Escolar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Cargamos el estilo general/usuarios para que tome forma el sidebar y el header -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
-</head>
-<body>
+    <!-- Y luego el específico de catálogo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
 
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
-            <div>
-                <div class="sidebar-brand">
-                    <div class="brand-logo">36</div>
-                    <div class="brand-text">
-                        <h2>Biblioteca Escolar</h2>
-                        <p>E.T. Nº 36 · Almirante G. Brown</p>
+            <div class="sidebar-top">
+                <div class="brand-header">
+                    <div class="logo-badge">36</div>
+                    <div class="brand-titles">
+                        <h1>Biblioteca Escolar</h1>
+                        <p>E.T. N° 36 · Almirante G. Brown</p>
                     </div>
                 </div>
 
-                <div class="menu-category">MENÚ PRINCIPAL</div>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Inicio</a></li>
-                    <li><a href="{{ url_for('prestamos') }}"><i class="fa-solid fa-square-check"></i> Préstamos</a></li>
-                    <li><a href="{{ url_for('catalogo') }}" class="active"><i class="fa-solid fa-laptop"></i> Catálogo e inventario</a></li>
-                    <li><a href="{{ url_for('usuarios') }}"><i class="fa-solid fa-user"></i> Gestión de Usuarios</a></li>
-                </ul>
+                <nav class="sidebar-nav">
+                    <span class="nav-section-title">MENÚ PRINCIPAL</span>
+                    <ul>
+                        <li class="nav-item active">
+                            <a href="{{ url_for('inicio') }}">
+                                <i class="fa-solid fa-house nav-icon"></i>
+                                <span>Inicio</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('prestamos') }}">
+                                <i class="fa-regular fa-square-check nav-icon"></i>
+                                <span>Préstamos</span>
+                                <span class="nav-badge" id="sidebarBadge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('catalogo') }}">
+                                <i class="fa-regular fa-bookmark nav-icon"></i>
+                                <span>Catálogo e inventario</span>
+                            </a>
+                        </li>
+                        {% if session.role == "Bibliotecario/a" %}
+                            <li class="nav-item" id="menuUsers">
+                                <a href="{{ url_for('usuarios') }}">
+                                    <i class="fa-regular fa-user nav-icon"></i>
+                                    <span>Gestión de Usuarios</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
 
-            <div class="sidebar-footer">
-                <a href="#" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+            <div class="sidebar-bottom">
+                <a href="{{ url_for('logout') }}" id="btnLogout" class="logout-button">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </a>
             </div>
         </aside>
 

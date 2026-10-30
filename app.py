@@ -257,9 +257,8 @@ def prestamos():
 # Ruta de Catálogo e Inventario corregida
 @app.route('/catalogo', methods=['GET', 'POST'])
 def catalogo():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(dictionary=True)
-
+    cursor = mysql.connection.cursor()
+    
     # Si el usuario envía el formulario modal (método POST)
     if request.method == 'POST':
         numero_compu = request.form['numero']
@@ -271,12 +270,11 @@ def catalogo():
                 "INSERT INTO Computadoras (Numero, Numero_Carro, Estado) VALUES (%s, %s, %s)",
                 (numero_compu, numero_carro, estado)
             )
-            conexion.commit()
+            mysql.connection.commit() # Corregido: se usa mysql.connection en lugar de conexion
         except Exception as e:
             print(f"Error al registrar la computadora: {e}")
         finally:
             cursor.close()
-            conexion.close()
 
         # Recarga la misma página ya con el registro guardado
         return redirect(url_for('catalogo'))
@@ -292,7 +290,6 @@ def catalogo():
     carros = cursor.fetchall()
 
     cursor.close()
-    conexion.close()
     
     return render_template('catalogo.html', computadoras=computadoras, carros=carros)
 
