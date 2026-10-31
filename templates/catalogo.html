@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo e Inventario - Biblioteca Escolar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Cargamos el estilo general/usuarios para que tome forma el sidebar y el header -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/usuarios.css') }}">
-    <!-- Y luego el específico de catálogo -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
-
+</head>
+<body>
     <div class="dashboard-container">
         <aside class="sidebar">
             <div class="sidebar-top">
@@ -24,7 +23,7 @@
                 <nav class="sidebar-nav">
                     <span class="nav-section-title">MENÚ PRINCIPAL</span>
                     <ul>
-                        <li class="nav-item active">
+                        <li class="nav-item">
                             <a href="{{ url_for('inicio') }}">
                                 <i class="fa-solid fa-house nav-icon"></i>
                                 <span>Inicio</span>
@@ -34,10 +33,9 @@
                             <a href="{{ url_for('prestamos') }}">
                                 <i class="fa-regular fa-square-check nav-icon"></i>
                                 <span>Préstamos</span>
-                                <span class="nav-badge" id="sidebarBadge" style="display: none;">0</span>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="{{ url_for('catalogo') }}">
                                 <i class="fa-regular fa-bookmark nav-icon"></i>
                                 <span>Catálogo e inventario</span>
@@ -73,8 +71,8 @@
                 <div class="user-profile">
                     <div class="avatar"><i class="fa-solid fa-ellipsis"></i></div>
                     <div class="user-info">
-                        <span class="user-name">juancito</span>
-                        <span class="user-role">Bibliotecario/a</span>
+                        <span class="user-name">{{ session.get('name', session.get('nombre', 'Usuario')) }}</span>
+                        <span class="user-role">{{ session.get('role', 'Bibliotecario/a') }}</span>
                         <i class="fa-solid fa-chevron-down dropdown-icon"></i>
                     </div>
                 </div>
@@ -87,20 +85,17 @@
                         <h2>Computadoras y Carros</h2>
                         <p class="section-description">Controlá el estado de los equipos informáticos y su asignación en los carros de netbooks.</p>
                     </div>
-                    <!-- Botón que abre el Modal -->
                     <button type="button" class="btn-primary" onclick="abrirModal()">
                         <i class="fa-solid fa-plus"></i> Registrar equipo
                     </button>
                 </div>
 
-                <!-- Pestañas de filtro -->
                 <div class="tabs-bar">
                     <a href="#" class="tab-item active">Computadoras <span class="badge-count">{{ computadoras|length }}</span></a>
                     <a href="#" class="tab-item">Carros <span class="badge-count">0</span></a>
                 </div>
                 <div class="tab-line"></div>
 
-                <!-- Tabla de computadoras -->
                 <div class="card-container">
                     <div class="search-filter-bar">
                         <div class="search-box">
@@ -159,7 +154,7 @@
         </main>
     </div>
 
-    <!-- VENTANA MODAL (Oculta por defecto) -->
+    <!-- VENTANA MODAL -->
     <div id="modalRegistro" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -167,16 +162,15 @@
                 <button type="button" class="modal-close" onclick="cerrarModal()">&times;</button>
             </div>
             
-            <!-- El formulario envía los datos a la misma ruta /catalogo por POST -->
             <form action="{{ url_for('catalogo') }}" method="POST">
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Número de Computadora:</label>
-                    <input type="number" name="numero" required placeholder="Ej. 105" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                <div class="modal-form-group">
+                    <label class="modal-label">Número de Computadora:</label>
+                    <input type="number" name="numero" required placeholder="Ej. 105" class="modal-input">
                 </div>
 
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Carro Asignado:</label>
-                    <select name="numero_carro" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                <div class="modal-form-group">
+                    <label class="modal-label">Carro Asignado:</label>
+                    <select name="numero_carro" required class="modal-select">
                         <option value="">Seleccione un carro...</option>
                         {% for carro in carros %}
                             <option value="{{ carro.Numero }}">Carro Nº {{ carro.Numero }}</option>
@@ -184,24 +178,23 @@
                     </select>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display:block; font-weight:600; margin-bottom:5px; font-size:0.85rem;">Estado inicial:</label>
-                    <select name="estado" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                <div class="modal-form-group modal-form-group-last">
+                    <label class="modal-label">Estado inicial:</label>
+                    <select name="estado" required class="modal-select">
                         <option value="Disponible">Disponible</option>
                         <option value="En reparación">En reparación</option>
                         <option value="Prestada">Prestada</option>
                     </select>
                 </div>
 
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="cerrarModal()" style="padding: 10px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <div class="modal-actions-flex">
+                    <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Computadora</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script JavaScript para controlar el modal -->
     <script>
         function abrirModal() {
             document.getElementById('modalRegistro').style.display = 'flex';

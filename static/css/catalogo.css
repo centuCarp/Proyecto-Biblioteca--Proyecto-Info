@@ -504,3 +504,61 @@ body {
 .modal-close:hover {
     color: #0f172a;
 }
+/* ==========================================================================
+   ESTILOS PARA EL MODAL DE REGISTRO (Limpios de HTML)
+   ========================================================================== */
+.modal-form-group {
+    margin-bottom: 15px;
+}
+
+.modal-form-group-last {
+    margin-bottom: 20px;
+}
+
+.modal-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    color: #1e293b;
+}
+
+.modal-input,
+.modal-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #f8fafc;
+    color: #334155;
+    outline: none;
+}
+
+.modal-input:focus,
+.modal-select:focus {
+    border-color: #0077cc;
+    background-color: #ffffff;
+}
+
+.modal-actions-flex {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    color: #475569;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}

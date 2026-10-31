@@ -35,7 +35,6 @@ def login():
         # Ejecutamos una consulta segura utilizando %s para evitar inyecciones SQL
         cursor.execute("SELECT * FROM Usuarios WHERE Email = %s AND Contraseña = %s", (email, password))
         
-        
         # Obtenemos un único registro (el primer usuario que coincida)
         user = cursor.fetchone()
         
@@ -142,7 +141,7 @@ def inicio():
 
 
 
-@app.route('/inicio#registrar_prestamo', methods=['POST'])
+@app.route('/inicio/registrar_prestamo', methods=['POST'])
 def registrar_prestamo():
     # Verificamos que el usuario tenga sesión activa
     if not session.get('loggedin'):
@@ -257,6 +256,9 @@ def prestamos():
 # Ruta de Catálogo e Inventario corregida
 @app.route('/catalogo', methods=['GET', 'POST'])
 def catalogo():
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+    
     cursor = mysql.connection.cursor()
     
     # Si el usuario envía el formulario modal (método POST)
@@ -295,10 +297,13 @@ def catalogo():
 
 @app.route('/usuarios')
 def usuarios():
+    if not session.get('loggedin'):
+        return redirect(url_for('login'))
+    
     lista_usuarios = []
     try:
         # 1. Abrir conexión y cursor (con dictionary=True para acceder fácilmente por nombre de columna)
-        conexion = obtener_conexion()
+        conexion = mysql.connection.cursor()
         cursor = conexion.cursor(dictionary=True)
         
         # 2. Consultar la tabla Usuarios
